@@ -192,7 +192,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 }
 
-typealias REEntityObservableCollection<Entity: REEntity> = REEntityObservableCollectionExtra<Entity, REEntityCollectionExtraParamsEmpty>
+public typealias REEntityObservableCollection<Entity: REEntity> = REEntityObservableCollectionExtra<Entity, REEntityCollectionExtraParamsEmpty>
 
 extension ObservableType
 {
