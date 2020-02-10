@@ -196,7 +196,7 @@ typealias REEntityObservableCollection<Entity: REEntity> = REEntityObservableCol
 
 extension ObservableType
 {
-    func bind<Entity: REEntity>( refresh: REEntityObservableCollectionExtra<Entity, Element>, resetCache: Bool = false ) -> Disposable
+    public func bind<Entity: REEntity>( refresh: REEntityObservableCollectionExtra<Entity, Element>, resetCache: Bool = false ) -> Disposable
     {
         return observeOn( refresh.queue )
             .subscribe( onNext: { refresh._Refresh( resetCache: resetCache, collectionExtra: $0 ) } )
