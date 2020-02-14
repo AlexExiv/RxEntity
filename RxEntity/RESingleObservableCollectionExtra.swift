@@ -65,27 +65,17 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
     }
     
-    override func Update( source: String, entity: Entity )
+    override func _Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
-        
-        if let key = self.entity?.key, key == entity.key, source != uuid
-        {
-            rxPublish.onNext( entity )
-        }
+        _CollectionRefresh( resetCache: resetCache, extra: extra )
     }
     
-    override func Update( source: String, entities: [REEntityKey: Entity] )
+    override func RefreshData( resetCache: Bool, data: Any? )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
-        
-        if let key = entity?.key, let entity = entities[key], source != uuid
-        {
-            rxPublish.onNext( entity )
-        }
+        _CollectionRefresh( resetCache: resetCache, collectionExtra: data as? CollectionExtra )
     }
     
-    public func CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
+    func CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
         Single<Bool>.create
             {
@@ -107,7 +97,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         CollectionRefresh( resetCache: resetCache, extra: extra )
     }
     
-    public func _CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
+    func _CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
         assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
         
@@ -115,20 +105,5 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         self.collectionExtra = collectionExtra ?? self.collectionExtra
         _rxRefresh.accept( RESingleParams( refreshing: true, resetCache: resetCache, first: !started, extra: self.extra, collectionExtra: self.collectionExtra ) )
         started = true
-    }
-    
-    override func _Refresh( resetCache: Bool = false, extra: Extra? = nil )
-    {
-        _CollectionRefresh( resetCache: resetCache, extra: extra )
-    }
-    
-    public func CollectionRefreshData( resetCache: Bool, collectionExtra: CollectionExtra )
-    {
-        _CollectionRefresh( resetCache: resetCache, collectionExtra: collectionExtra )
-    }
-    
-    override func RefreshData( resetCache: Bool, data: Any )
-    {
-        CollectionRefreshData( resetCache: resetCache, collectionExtra: data as! CollectionExtra )
     }
 }

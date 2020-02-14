@@ -47,7 +47,7 @@ public class REEntityObservable<Entity: REEntity>
         
     }
     
-    func RefreshData( resetCache: Bool, data: Any )
+    func RefreshData( resetCache: Bool, data: Any? )
     {
         
     }

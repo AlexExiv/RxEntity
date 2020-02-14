@@ -17,43 +17,46 @@ public struct REEntityCollectionExtraParamsEmpty
 
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>
 {
-    public convenience init( operationQueue: OperationQueue )
+    public private(set) var collectionExtra: CollectionExtra? = nil
+    
+    public convenience init( operationQueue: OperationQueue, collectionExtra: CollectionExtra? = nil )
     {
-        self.init( queue: OperationQueueScheduler( operationQueue: operationQueue ) )
+        self.init( queue: OperationQueueScheduler( operationQueue: operationQueue ), collectionExtra: collectionExtra )
     }
     
-    public override init( queue: OperationQueueScheduler )
+    public init( queue: OperationQueueScheduler, collectionExtra: CollectionExtra? = nil )
     {
+        self.collectionExtra = collectionExtra
         super.init( queue: queue )
     }
 
     //MARK: - Create Observables
-    public func CreateSingle( collectionExtra: CollectionExtra? = nil, start: Bool = true, _ fetch: @escaping (RESingleParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<Entity> ) -> RESingleObservable<Entity>
+    public func CreateSingle( start: Bool = true, _ fetch: @escaping (RESingleParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<Entity> ) -> RESingleObservable<Entity>
     {
         return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateSingleExtra<Extra>( extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, _ fetch: @escaping (RESingleParams<Extra, CollectionExtra>) -> Single<Entity> ) -> RESingleObservableExtra<Entity, Extra>
+    public func CreateSingleExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping (RESingleParams<Extra, CollectionExtra>) -> Single<Entity> ) -> RESingleObservableExtra<Entity, Extra>
     {
         return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateArray( collectionExtra: CollectionExtra? = nil, start: Bool = true, _ fetch: @escaping (REPageParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<[Entity]> ) -> REArrayObservable<Entity>
+    public func CreateArray( start: Bool = true, _ fetch: @escaping (REPageParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<[Entity]> ) -> REArrayObservable<Entity>
     {
         return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateArrayExtra<Extra>( extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, _ fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<[Entity]> ) -> REArrayObservableExtra<Entity, Extra>
+    public func CreateArrayExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<[Entity]> ) -> REArrayObservableExtra<Entity, Extra>
     {
         return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreatePaginator( collectionExtra: CollectionExtra? = nil, perPage: Int = 35, start: Bool = true, _ fetch: @escaping (REPageParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<[Entity]> ) -> REPaginatorObservable<Entity>
+    public func CreatePaginator( perPage: Int = 35, start: Bool = true, _ fetch: @escaping (REPageParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<[Entity]> ) -> REPaginatorObservable<Entity>
     {
         return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreatePaginatorExtra<Extra>( extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = 35, start: Bool = true, _ fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<[Entity]> ) -> REPaginatorObservableExtra<Entity, Extra>
+    public func CreatePaginatorExtra<Extra>( extra: Extra? = nil, perPage: Int = 35, start: Bool = true, _ fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<[Entity]> ) -> REPaginatorObservableExtra<Entity, Extra>
     {
         return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, fetch: fetch )
     }
@@ -168,7 +171,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         
     }
     
-    public func Refresh( resetCache: Bool = false, collectionExtra: CollectionExtra )
+    public func Refresh( resetCache: Bool = false, collectionExtra: CollectionExtra? = nil )
     {
         Single<Bool>.create
             {
@@ -185,10 +188,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             .disposed( by: dispBag )
     }
     
-    func _Refresh( resetCache: Bool = false, collectionExtra: CollectionExtra )
+    func _Refresh( resetCache: Bool = false, collectionExtra: CollectionExtra? = nil )
     {
         assert( queue.operationQueue == OperationQueue.current, "_Refresh can be called only from the specified in the constructor OperationQueue" )
-        items.forEach { $0.ref?.RefreshData( resetCache: resetCache, data: collectionExtra ) }
+        self.collectionExtra = collectionExtra ?? self.collectionExtra
+        items.forEach { $0.ref?.RefreshData( resetCache: resetCache, data: self.collectionExtra ) }
     }
 }
 

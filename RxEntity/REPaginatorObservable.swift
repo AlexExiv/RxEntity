@@ -21,11 +21,6 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
 
     public func Next()
     {
-        _Next()
-    }
-    
-    func _Next()
-    {
         
     }
     

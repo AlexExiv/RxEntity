@@ -44,7 +44,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     public private(set) var collectionExtra: CollectionExtra? = nil
     var started = false
       
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<Element> )
+    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = 35, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping (REPageParams<Extra, CollectionExtra>) -> Single<Element> )
     {
         self.collectionExtra = collectionExtra
         super.init( holder: holder, extra: extra, perPage: perPage, observeOn: observeOn )
@@ -83,12 +83,12 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         _CollectionRefresh( resetCache: resetCache, extra: extra )
     }
 
-    override func RefreshData( resetCache: Bool, data: Any )
+    override func RefreshData( resetCache: Bool, data: Any? )
     {
-        CollectionRefreshData( resetCache: resetCache, collectionExtra: data as! CollectionExtra )
+        _CollectionRefresh( resetCache: resetCache, collectionExtra: data as? CollectionExtra )
     }
     
-    override func _Next()
+    public override func Next()
     {
         if started
         {
@@ -101,7 +101,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     }
     
     //MARK: - Collection
-    public func CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
+    func CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
         Single<Bool>.create
             {
@@ -125,10 +125,5 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         self.collectionExtra = collectionExtra ?? self.collectionExtra
         rxPage.accept( REPageParams( page: page + 1, perPage: perPage, refreshing: true, resetCache: resetCache, first: !started, extra: self.extra, collectionExtra: self.collectionExtra ) )
         started = true
-    }
-    
-    public func CollectionRefreshData( resetCache: Bool, collectionExtra: CollectionExtra )
-    {
-        _CollectionRefresh( resetCache: resetCache, collectionExtra: collectionExtra )
     }
 }

@@ -10,6 +10,7 @@ import Foundation
 import XCTest
 
 import RxSwift
+import RxRelay
 import RxTest
 import RxBlocking
 
@@ -217,8 +218,8 @@ class REEntityObservableTests: XCTestCase
     
     func testCollectionExtra()
     {
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
-        let single = collection.CreateSingleExtra( extra: ExtraParams( test: "test" ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        let single = collection.CreateSingleExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
             {
@@ -239,7 +240,7 @@ class REEntityObservableTests: XCTestCase
             .toBlocking()
             .first()!
 
-        let pages = collection.CreatePaginatorExtra( extra: ExtraParams( test: "test" ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        let pages = collection.CreatePaginatorExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
             {
