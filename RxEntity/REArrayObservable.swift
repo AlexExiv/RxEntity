@@ -74,6 +74,11 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }
     
+    subscript( index: Int ) -> RESingleObservable<Entity>
+    {
+        return collection!.CreateSingle( initial: entitiesNotNil[index] )
+    }
+    
     public func Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
         

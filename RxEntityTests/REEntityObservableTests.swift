@@ -274,4 +274,98 @@ class REEntityObservableTests: XCTestCase
             .toBlocking()
             .first()!
     }
+    
+    func testArrayGetSingle()
+    {
+        var i = 0
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        collection.singleFetchCallback =
+        {
+            if $0.first
+            {
+                XCTAssertEqual( $0.collectionExtra!.test, "test" )
+            }
+            else
+            {
+                XCTAssertEqual( $0.refreshing, true )
+            }
+            
+            return Single.just( TestEnity( id: $0.lastEntity!.id, value: $0.collectionExtra!.test + (i == 0 ? "sr" : "") + $0.lastEntity!.id ) )
+            
+        }
+        
+        let pages = collection.CreatePaginatorExtra( extra: ExtraParams( test: "test" ) )
+        {
+            if $0.first
+            {
+                XCTAssertEqual( $0.collectionExtra!.test, "test" )
+            }
+            else
+            {
+                XCTAssertEqual( $0.extra!.test, "test" )
+                XCTAssertEqual( $0.collectionExtra!.test, "test2" )
+                XCTAssertEqual( $0.refreshing, true )
+                XCTAssertEqual( $0.page, 0 )
+            }
+            
+            return Single.just( [TestEnity( id: "1", value: $0.collectionExtra!.test + "1" ), TestEnity( id: "2", value: $0.collectionExtra!.test + "2" )] )
+            
+        }
+        
+        _ = try! pages
+            .toBlocking()
+            .first()!
+        
+        let single0 = pages[0]
+        let single1 = pages[1]
+        
+        var s0 = try! single0
+            .toBlocking()
+            .first()!
+        
+        var s1 = try! single1
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s0.id, "1" )
+        XCTAssertEqual( s0.value, "test1" )
+        XCTAssertEqual( s1.id, "2" )
+        XCTAssertEqual( s1.value, "test2" )
+        
+        single0.Refresh()
+        single1.Refresh()
+        
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s0 = try! single0
+            .toBlocking()
+            .first()!
+        
+        s1 = try! single1
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s0.id, "1" )
+        XCTAssertEqual( s0.value, "testsr1" )
+        XCTAssertEqual( s1.id, "2" )
+        XCTAssertEqual( s1.value, "testsr2" )
+        
+        i = 1
+        collection.Refresh( collectionExtra: ExtraCollectionParams( test: "test2" ) )
+
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s0 = try! single0
+            .toBlocking()
+            .first()!
+        
+        s1 = try! single1
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s0.id, "1" )
+        XCTAssertEqual( s0.value, "test21" )
+        XCTAssertEqual( s1.id, "2" )
+        XCTAssertEqual( s1.value, "test22" )
+    }
 }

@@ -17,6 +17,7 @@ public struct REEntityCollectionExtraParamsEmpty
 
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>
 {
+    public var singleFetchCallback: RESingleFetchCallback<Entity, REEntityExtraParamsEmpty, CollectionExtra>? = nil
     public private(set) var collectionExtra: CollectionExtra? = nil
     
     public convenience init( operationQueue: OperationQueue, collectionExtra: CollectionExtra? = nil )
@@ -31,14 +32,26 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 
     //MARK: - Create Observables
-    public func CreateSingle( start: Bool = true, _ fetch: @escaping (RESingleParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<Entity> ) -> RESingleObservable<Entity>
+    public override func CreateSingle( initial: Entity ) -> RESingleObservable<Entity>
     {
-        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
+        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, fetch: singleFetchCallback! )
     }
     
-    public func CreateSingleExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping (RESingleParams<Extra, CollectionExtra>) -> Single<Entity> ) -> RESingleObservableExtra<Entity, Extra>
+    public func CreateSingle( key: REEntityKey, start: Bool = true ) -> RESingleObservable<Entity>
     {
-        return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
+        return CreateSingle( key: key, start: start, singleFetchCallback! )
+    }
+    
+    public func CreateSingle( key: REEntityKey? = nil, start: Bool = true, _ fetch: @escaping RESingleFetchCallback<Entity, REEntityExtraParamsEmpty, CollectionExtra> ) -> RESingleObservable<Entity>
+    {
+        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, key: key, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+    }
+
+    public func CreateSingleExtra<Extra>( key: REEntityKey? = nil, extra: Extra? = nil, start: Bool = true, _ fetch: @escaping RESingleFetchCallback<Entity, Extra, CollectionExtra> ) -> RESingleObservableExtra<Entity, Extra>
+    {
+        return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
     public func CreateArray( start: Bool = true, _ fetch: @escaping (REPageParams<REEntityExtraParamsEmpty, CollectionExtra>) -> Single<[Entity]> ) -> REArrayObservable<Entity>

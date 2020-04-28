@@ -19,14 +19,16 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     public private(set) var extra: Extra? = nil
     
+    public private(set) var key: REEntityKey? = nil
     public var entity: Entity?
     {
         return try! rxPublish.value()
     }
     
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
+        self.key = key
         self.extra = extra
         
         super.init( holder: holder )
@@ -50,6 +52,11 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         {
             rxPublish.onNext( entity )
         }
+    }
+    
+    func Set( key: REEntityKey )
+    {
+        self.key = key
     }
     
     public func Refresh( resetCache: Bool = false, extra: Extra? = nil )
