@@ -368,4 +368,48 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s1.id, "2" )
         XCTAssertEqual( s1.value, "test22" )
     }
+    
+    func testArrayInitial()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        collection.arrayFetchCallback =
+        {
+            pp in Single.just( pp.keys.map { TestEnity( id: $0.stringKey, value: pp.collectionExtra!.test + $0.stringKey ) } )
+        }
+        
+        let array = collection.CreateArray(initial: [TestEnity( id: "1", value: "3" ), TestEnity( id: "2", value: "4" )])
+        
+        var s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "3" )
+        XCTAssertEqual( s[1].id, "2" )
+        XCTAssertEqual( s[1].value, "4" )
+        
+        collection.Refresh()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "test1" )
+        XCTAssertEqual( s[1].id, "2" )
+        XCTAssertEqual( s[1].value, "test2" )
+        
+        collection.Refresh( collectionExtra: ExtraCollectionParams( test: "test2" ) )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "test21" )
+        XCTAssertEqual( s[1].id, "2" )
+        XCTAssertEqual( s[1].value, "test22" )
+    }
 }

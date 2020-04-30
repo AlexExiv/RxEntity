@@ -88,4 +88,9 @@ public class REEntityCollection<Entity: REEntity>
     {
         fatalError( "This method must be overridden" )
     }
+    
+    func CreateArray( initial: [Entity] ) -> REArrayObservable<Entity>
+    {
+        fatalError( "This method must be overridden" )
+    }
 }

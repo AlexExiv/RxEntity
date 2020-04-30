@@ -33,15 +33,15 @@ public struct RESingleParams<Entity: REEntity, Extra, CollectionExtra>
     }
 }
 
-public typealias RESingleFetchCallback<Entity: REEntity, Extra, CollectionExtra> = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity>
-
 public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, CollectionExtra>: RESingleObservableExtra<Entity, Extra>
 {
+    public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity>
+    
     let _rxRefresh = PublishRelay<RESingleParams<Entity, Extra, CollectionExtra>>()
     public private(set) var collectionExtra: CollectionExtra? = nil
     var started = false
 
-    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping RESingleFetchCallback<Entity, Extra, CollectionExtra> )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
     {
         self.collectionExtra = collectionExtra
         
@@ -76,7 +76,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: Entity, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping RESingleFetchCallback<Entity, Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, initial: Entity, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
     {
         self.init( holder: holder, key: initial.key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, fetch: fetch )
         rxPublish.onNext( initial )

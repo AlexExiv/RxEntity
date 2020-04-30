@@ -14,3 +14,16 @@ public protocol REEntity
 {
     var key: REEntityKey { get }
 }
+
+extension AnyHashable
+{
+    var stringKey: String
+    {
+        return base as! String
+    }
+    
+    var intKey: Int
+    {
+        return base as! Int
+    }
+}

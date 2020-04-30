@@ -21,6 +21,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var perPage = 999999
     public private(set) var extra: Extra? = nil
 
+    public private(set) var keys: [REEntityKey] = []
+    
     public var entities: [Entity]?
     {
         return try! rxPublish.value()
@@ -31,9 +33,10 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         return entities ?? []
     }
         
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
+        self.keys = keys
         self.extra = extra
         self.perPage = perPage
         
@@ -77,6 +80,11 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     subscript( index: Int ) -> RESingleObservable<Entity>
     {
         return collection!.CreateSingle( initial: entitiesNotNil[index] )
+    }
+    
+    func Set( keys: [REEntityKey] )
+    {
+        self.keys = keys
     }
     
     public func Refresh( resetCache: Bool = false, extra: Extra? = nil )
