@@ -23,6 +23,7 @@
 		FB0F774423F1830500F71B91 /* RESingleObservable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F773B23F1830500F71B91 /* RESingleObservable.swift */; };
 		FB0F774523F1830500F71B91 /* REEntityObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */; };
 		FB0F774723F1833F00F71B91 /* REEntityObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */; };
+		FB4BC502250E79A5008600D8 /* RERepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4BC501250E79A5008600D8 /* RERepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,7 +48,7 @@
 		FB0F772123F17DDD00F71B91 /* RxEntityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxEntityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB0F772623F17DDD00F71B91 /* RxEntityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxEntityTests.swift; sourceTree = "<group>"; };
 		FB0F772823F17DDD00F71B91 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FB0F773223F17EF700F71B91 /* RxEntity.podspec */ = {isa = PBXFileReference; lastKnownFileType = file; path = RxEntity.podspec; sourceTree = SOURCE_ROOT; };
+		FB0F773223F17EF700F71B91 /* RxEntity.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = RxEntity.podspec; sourceTree = SOURCE_ROOT; };
 		FB0F773423F1830500F71B91 /* REPaginatorObservableCollectionExtra.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REPaginatorObservableCollectionExtra.swift; sourceTree = "<group>"; };
 		FB0F773523F1830500F71B91 /* REArrayObservable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REArrayObservable.swift; sourceTree = "<group>"; };
 		FB0F773623F1830500F71B91 /* RESingleObservableCollectionExtra.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESingleObservableCollectionExtra.swift; sourceTree = "<group>"; };
@@ -58,6 +59,7 @@
 		FB0F773B23F1830500F71B91 /* RESingleObservable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESingleObservable.swift; sourceTree = "<group>"; };
 		FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableCollection.swift; sourceTree = "<group>"; };
 		FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableTests.swift; sourceTree = "<group>"; };
+		FB4BC501250E79A5008600D8 /* RERepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RERepository.swift; sourceTree = "<group>"; };
 		FF580E9F25EDE9341E484563 /* Pods_RxEntity.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RxEntity.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -137,6 +139,7 @@
 				FB0F771B23F17DDD00F71B91 /* RxEntity.h */,
 				FB0F773223F17EF700F71B91 /* RxEntity.podspec */,
 				FB0F771C23F17DDD00F71B91 /* Info.plist */,
+				FB4BC501250E79A5008600D8 /* RERepository.swift */,
 			);
 			path = RxEntity;
 			sourceTree = "<group>";
@@ -337,6 +340,7 @@
 				FB0F774523F1830500F71B91 /* REEntityObservableCollection.swift in Sources */,
 				FB0F774023F1830500F71B91 /* REEntityObservable.swift in Sources */,
 				FB0F773E23F1830500F71B91 /* REArrayObservable.swift in Sources */,
+				FB4BC502250E79A5008600D8 /* RERepository.swift in Sources */,
 				FB0F774423F1830500F71B91 /* RESingleObservable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -37,18 +37,19 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
 {
     public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity>
     
+    let rxMiddleware = BehaviorRelay<Entity?>( value: nil )
     let _rxRefresh = PublishRelay<RESingleParams<Entity, Extra, CollectionExtra>>()
     public private(set) var collectionExtra: CollectionExtra? = nil
     var started = false
 
-    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchCallback )
     {
         self.collectionExtra = collectionExtra
         
-        super.init( holder: holder, key: key, extra: extra, observeOn: observeOn )
+        super.init( holder: holder, key: key, extra: extra, observeOn: observeOn, combineSources: combineSources )
         
         weak var _self = self
-        _rxRefresh
+        var obs = _rxRefresh
             .do( onNext: { _ in _self?.rxLoader.accept( true ) } )
             .flatMapLatest
             {
@@ -66,6 +67,34 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
             .do( onNext: { _ in _self?.rxLoader.accept( false ) } )
             .flatMapLatest { _self?.collection?.RxUpdate( entity: $0 ).asObservable() ?? Observable.empty() }
             .observeOn( observeOn )
+        
+        obs
+            .bind( to: rxMiddleware )
+            .disposed( by: dispBag )
+        
+        obs = rxMiddleware.filter { $0 != nil }.map { $0! }
+        combineSources.forEach {
+            ms in
+            switch ms.sources.count
+            {
+            case 1:
+                obs = Observable.combineLatest( obs, ms.sources[0], resultSelector: { ms.combine( $0, [$1] ) } )
+            case 2:
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], resultSelector: { ms.combine( $0, [$1, $2] ) } )
+            case 3:
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], resultSelector: { ms.combine( $0, [$1, $2, $3] ) } )
+            case 4:
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], resultSelector: { ms.combine( $0, [$1, $2, $3, $4] ) } )
+            case 5:
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5] ) } )
+            case 6:
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[6], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5, $6] ) } )
+            default:
+                assert( false, "Unsupported number of the sources" )
+            }
+        }
+        
+        obs
             .bind( to: rxPublish )
             .disposed( by: dispBag )
         
@@ -76,11 +105,11 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: Entity, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
+    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchCallback )
     {
-        self.init( holder: holder, key: initial.key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, fetch: fetch )
+        self.init( holder: holder, key: initial.key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
         rxPublish.onNext( initial )
-        started = true
+        started = !refresh
     }
     
     override func _Refresh( resetCache: Bool = false, extra: Extra? = nil )

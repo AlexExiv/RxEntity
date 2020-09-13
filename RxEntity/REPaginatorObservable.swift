@@ -14,9 +14,9 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
 {
     public typealias Element = [Entity]
     
-    override init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 30, start: Bool = true, observeOn: OperationQueueScheduler )
+    override init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 30, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
     {
-        super.init( holder: holder, keys: keys, extra: extra, perPage: perPage, start: start, observeOn: observeOn )
+        super.init( holder: holder, keys: keys, extra: extra, perPage: perPage, start: start, observeOn: observeOn, combineSources: combineSources )
     }
 
     public func Next()

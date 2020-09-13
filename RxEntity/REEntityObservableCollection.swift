@@ -15,6 +15,12 @@ public struct REEntityCollectionExtraParamsEmpty
     
 }
 
+struct RECombineSource<E>
+{
+    let sources: [Observable<Any>]
+    let combine: (E, Array<Any>) -> E
+}
+
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>
 {
     public typealias SingleFetchCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchCallback
@@ -27,7 +33,8 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public var arrayFetchCallback: PageFetchCallback? = nil
     
     public private(set) var collectionExtra: CollectionExtra? = nil
-    
+    private(set) var combineSources = [RECombineSource<Entity>]()
+        
     public convenience init( operationQueue: OperationQueue, collectionExtra: CollectionExtra? = nil )
     {
         self.init( queue: OperationQueueScheduler( operationQueue: operationQueue ), collectionExtra: collectionExtra )
@@ -40,33 +47,34 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 
     //MARK: - Single Observables
-    public override func CreateSingle( initial: Entity ) -> RESingleObservable<Entity>
+    public override func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>
     {
         assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
-        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, fetch: singleFetchCallback! )
+        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: singleFetchCallback! )
     }
     
-    public func CreateSingle( key: REEntityKey, start: Bool = true ) -> RESingleObservable<Entity>
+    public func CreateSingle( key: REEntityKey, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
     {
         assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
-        return CreateSingle( key: key, start: start, singleFetchCallback! )
+        let e = sharedEntities[key]
+        return e == nil ? CreateSingle( key: key, start: start, singleFetchCallback! ) : CreateSingle( initial: e!, refresh: refresh )
     }
     
     public func CreateSingle( key: REEntityKey? = nil, start: Bool = true, _ fetch: @escaping SingleFetchCallback ) -> RESingleObservable<Entity>
     {
-        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, key: key, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, key: key, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
 
     public func CreateSingleExtra<Extra>( key: REEntityKey? = nil, extra: Extra? = nil, start: Bool = true, _ fetch: @escaping SingleExtraFetchCallback<Extra> ) -> RESingleObservableExtra<Entity, Extra>
     {
-        return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     //MARK: - Array Observables
     public override func CreateArray( initial: [Entity] ) -> REArrayObservable<Entity>
     {
         assert( arrayFetchCallback != nil, "To create Array with initial values you must specify arrayFetchCallback before" )
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, fetch: arrayFetchCallback! )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchCallback! )
     }
     
     public func CreateArray( keys: [REEntityKey], start: Bool = true ) -> REArrayObservable<Entity>
@@ -77,23 +85,79 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     public func CreateArray( keys: [REEntityKey] = [], start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REArrayObservable<Entity>
     {
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     public func CreateArrayExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
     {
-        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     //MARK: - Paginator Observables
     public func CreatePaginator( perPage: Int = 35, start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REPaginatorObservable<Entity>
     {
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     public func CreatePaginatorExtra<Extra>( extra: Extra? = nil, perPage: Int = 35, start: Bool = true, _ fetch: @escaping PageExtraFetchCallback<Extra> ) -> REPaginatorObservableExtra<Entity, Extra>
     {
-        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    //MARK: - Combine Latest
+    func combineLatest<T>( _ source: Observable<T>, _ merge: @escaping (Entity, T) -> Entity )
+    {
+        combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.asObservable()], combine: { (e, a) in merge( e, a[0] as! T ) } ) )
+    }
+
+    func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> Entity )
+    {
+        let sources = [source0.map { $0 as Any }.asObservable(),
+                       source1.map { $0 as Any }.asObservable()]
+        
+        combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1 ) } ) )
+    }
+
+    func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> Entity )
+    {
+        let sources = [source0.map { $0 as Any }.asObservable(),
+                       source1.map { $0 as Any }.asObservable(),
+                       source2.map { $0 as Any }.asObservable()]
+        
+        combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2 ) } ) )
+    }
+
+    func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> Entity)
+    {
+        let sources = [source0.map { $0 as Any }.asObservable(),
+                       source1.map { $0 as Any }.asObservable(),
+                       source2.map { $0 as Any }.asObservable(),
+                       source3.map { $0 as Any }.asObservable()]
+        
+        combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3 ) } ) )
+    }
+
+    func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> Entity)
+    {
+        let sources = [source0.map { $0 as Any }.asObservable(),
+                       source1.map { $0 as Any }.asObservable(),
+                       source2.map { $0 as Any }.asObservable(),
+                       source3.map { $0 as Any }.asObservable(),
+                       source4.map { $0 as Any }.asObservable()]
+        
+        combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4 ) } ) )
+    }
+
+    func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> Entity)
+    {
+        let sources = [source0.map { $0 as Any }.asObservable(),
+                       source1.map { $0 as Any }.asObservable(),
+                       source2.map { $0 as Any }.asObservable(),
+                       source3.map { $0 as Any }.asObservable(),
+                       source4.map { $0 as Any }.asObservable(),
+                       source5.map { $0 as Any }.asObservable()]
+        
+        combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4, a[5] as! T5 ) } ) )
     }
     
     //MARK: - Updates
@@ -231,7 +295,24 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 }
 
+public class ERZoombieRepostory<Entity: REEntity>: RERepository
+{
+    public typealias E = Entity
+    
+    public func RxGet( key: REEntityKey ) -> Single<Entity?>
+    {
+        return Single.just( nil )
+    }
+    
+    public func RxGet( keys: REEntityKey ) -> Single<[Entity]>
+    {
+        return Single.just( [] )
+    }
+}
+
 public typealias REEntityObservableCollection<Entity: REEntity> = REEntityObservableCollectionExtra<Entity, REEntityCollectionExtraParamsEmpty>
+
+//public typealias REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra> = REEntityObservableCollectionExtraRepository<Entity, CollectionExtra, ERZoombieRepostory<Entity>>
 
 extension ObservableType
 {

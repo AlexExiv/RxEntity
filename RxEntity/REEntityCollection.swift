@@ -84,7 +84,7 @@ public class REEntityCollection<Entity: REEntity>
         items.forEach { $0.ref?.Update( source: source, entities: self.sharedEntities ) }
     }
     
-    func CreateSingle( initial: Entity ) -> RESingleObservable<Entity>
+    func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>
     {
         fatalError( "This method must be overridden" )
     }

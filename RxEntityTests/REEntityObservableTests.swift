@@ -412,4 +412,124 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[1].id, "2" )
         XCTAssertEqual( s[1].value, "test22" )
     }
+    
+    func testMergeWithSingle()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let rxObs = BehaviorSubject( value: "2" )
+        let rxObs1 = BehaviorSubject( value: "3" )
+        collection.combineLatest( rxObs, rxObs1 ) { $0.Modified( value: $1 + $2 ) }
+        collection.combineLatest( rxObs ) { $0.Modified( value: $1 ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: $1 ) }
+        let single0 = collection.CreateSingle( key: "1" ) { _ in Single.just( TestEnity( id: "1", value: "1" ) ) }
+
+        var disp = single0.subscribe( onNext: {
+            XCTAssertEqual($0.id, "1")
+            XCTAssertEqual($0.value, "3")
+        })
+        disp.dispose()
+
+        rxObs.onNext("4")
+        rxObs1.onNext("4")
+        disp = single0.subscribe( onNext: {
+            XCTAssertEqual($0.id, "1")
+            XCTAssertEqual($0.value, "4")
+        })
+        disp.dispose()
+
+        rxObs1.onNext("5")
+        disp = single0.subscribe( onNext: {
+            XCTAssertEqual($0.id, "1")
+            XCTAssertEqual($0.value, "5")
+        })
+        disp.dispose()
+    }
+    
+    func testMergeWithPaginator()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let rxObs = BehaviorSubject( value: "2" )
+        let rxObs1 = BehaviorSubject( value: "3" )
+        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        let pager = collection.CreatePaginator( perPage: 2 ) {
+            if ($0.page == 0)
+            {
+                return Single.just([TestEnity(id: "1", value: "1"), TestEnity(id: "2", value: "1")])
+            }
+            else
+            {
+                return Single.just([TestEnity(id: "3", value: "1"), TestEnity(id: "4", value: "1")])
+            }
+        }
+
+        var disp = pager.subscribe( onNext: {
+            XCTAssertEqual($0.count, 2)
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "13")
+        })
+        disp.dispose()
+
+        rxObs.onNext("4")
+        rxObs1.onNext("4")
+        disp = pager.subscribe( onNext: {
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "14")
+        })
+        disp.dispose()
+
+        rxObs1.onNext("5")
+        disp = pager.subscribe( onNext: {
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "15")
+        })
+        disp.dispose()
+
+        pager.Next()
+        disp = pager.subscribe( onNext: {
+            XCTAssertEqual($0.count, 4)
+            XCTAssertEqual($0[2].id, "3")
+            XCTAssertEqual($0[2].value, "35")
+        })
+        disp.dispose()
+    }
+    
+    func testArrayInitialMerge()
+    {
+        var i = 0
+        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+
+        let rxObs = BehaviorSubject( value: "2" )
+        let rxObs1 = BehaviorSubject( value: "3" )
+        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
+
+        collection.arrayFetchCallback = { pp in
+            Single.just( [] )
+        }
+
+        let array = collection.CreateArray( initial: [TestEnity( id: "1", value: "2" ), TestEnity( id: "2", value: "3" ) ] )
+
+        var disp = array.subscribe( onNext: {
+            XCTAssertEqual($0.count, 2)
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "13")
+        })
+        disp.dispose()
+
+        rxObs.onNext("4")
+        rxObs1.onNext("4")
+        disp = array.subscribe( onNext: {
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "14")
+        })
+        disp.dispose()
+
+        rxObs1.onNext("5")
+        disp = array.subscribe( onNext: {
+            XCTAssertEqual($0[0].id, "1")
+            XCTAssertEqual($0[0].value, "15")
+        })
+        disp.dispose()
+    }
 }

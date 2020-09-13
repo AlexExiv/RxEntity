@@ -24,10 +24,12 @@ public class REEntityObservable<Entity: REEntity>
     
     public let uuid = UUID().uuidString
     public private(set) weak var collection: REEntityCollection<Entity>? = nil
+    let combineSources: [RECombineSource<Entity>]
     
-    init( holder: REEntityCollection<Entity> )
+    init( holder: REEntityCollection<Entity>, combineSources: [RECombineSource<Entity>] )
     {
         self.collection = holder
+        self.combineSources = combineSources
         holder.Add( object: self )
     }
     

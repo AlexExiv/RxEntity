@@ -33,14 +33,14 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         return entities ?? []
     }
         
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
     {
         self.queue = observeOn
         self.keys = keys
         self.extra = extra
         self.perPage = perPage
         
-        super.init( holder: holder )
+        super.init( holder: holder, combineSources: combineSources )
     }
     
     override func Update( source: String, entity: Entity )
