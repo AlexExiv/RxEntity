@@ -294,7 +294,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.RefreshData( resetCache: resetCache, data: self.collectionExtra ) }
     }
 }
-
+/*
 public class ERZoombieRepostory<Entity: REEntity>: RERepository
 {
     public typealias E = Entity
@@ -309,7 +309,7 @@ public class ERZoombieRepostory<Entity: REEntity>: RERepository
         return Single.just( [] )
     }
 }
-
+*/
 public typealias REEntityObservableCollection<Entity: REEntity> = REEntityObservableCollectionExtra<Entity, REEntityCollectionExtraParamsEmpty>
 
 //public typealias REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra> = REEntityObservableCollectionExtraRepository<Entity, CollectionExtra, ERZoombieRepostory<Entity>>
