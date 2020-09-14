@@ -29,11 +29,15 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public typealias SingleFetchCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchCallback
     public typealias SingleExtraFetchCallback<Extra> = RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>.SingleFetchCallback
     
+    public typealias PageFetchBackCallback = REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.PageFetchBackCallback<REEntityExtraParamsEmpty, CollectionExtra>
+    public typealias PageExtraFetchBackCallback<Extra> = REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>.PageFetchBackCallback<Extra, CollectionExtra>
+    
     public typealias PageFetchCallback = REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.PageFetchCallback<REEntityExtraParamsEmpty, CollectionExtra>
     public typealias PageExtraFetchCallback<Extra> = REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>.PageFetchCallback<Extra, CollectionExtra>
     
     public var singleFetchBackCallback: SingleFetchBackCallback? = nil
     public var singleFetchCallback: SingleFetchCallback? = nil
+    public var arrayFetchBackCallback: PageFetchBackCallback? = nil
     public var arrayFetchCallback: PageFetchCallback? = nil
     
     public private(set) var collectionExtra: CollectionExtra? = nil
@@ -106,16 +110,14 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Array Observables
-    public override func CreateArray( initial: [Entity] ) -> REArrayObservable<Entity>
+    public func CreateArrayBack( keys: [REEntityKey] = [], start: Bool = true, _ fetch: @escaping PageFetchBackCallback ) -> REArrayObservable<Entity>
     {
-        assert( arrayFetchCallback != nil, "To create Array with initial values you must specify arrayFetchCallback before" )
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchCallback! )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
-    public func CreateArray( keys: [REEntityKey], start: Bool = true ) -> REArrayObservable<Entity>
+    public func CreateArrayBackExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchBackCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
     {
-        assert( arrayFetchCallback != nil, "To create Array with initial value you must specify arrayFetchCallback before" )
-        return CreateArray( keys: keys, start: start, arrayFetchCallback! )
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     public func CreateArray( keys: [REEntityKey] = [], start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REArrayObservable<Entity>
@@ -128,7 +130,45 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
+    public override func CreateArray( initial: [Entity] ) -> REArrayObservable<Entity>
+    {
+        if arrayFetchCallback != nil
+        {
+            return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchCallback! )
+        }
+        else if arrayFetchBackCallback != nil
+        {
+            return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchBackCallback! )
+        }
+        
+        precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
+    }
+    
+    public func CreateArray( keys: [REEntityKey], start: Bool = true ) -> REArrayObservable<Entity>
+    {
+        if arrayFetchCallback != nil
+        {
+            return CreateArray( keys: keys, start: start, arrayFetchCallback! )
+        }
+        else if arrayFetchBackCallback != nil
+        {
+            return CreateArrayBack( keys: keys, start: start, arrayFetchBackCallback! )
+        }
+        
+        precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
+    }
+    
     //MARK: - Paginator Observables
+    public func CreatePaginatorBack( perPage: Int = 35, start: Bool = true, _ fetch: @escaping PageFetchBackCallback ) -> REPaginatorObservable<Entity>
+    {
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public func CreatePaginatorBackExtra<Extra>( extra: Extra? = nil, perPage: Int = 35, start: Bool = true, _ fetch: @escaping PageExtraFetchBackCallback<Extra> ) -> REPaginatorObservableExtra<Entity, Extra>
+    {
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
     public func CreatePaginator( perPage: Int = 35, start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REPaginatorObservable<Entity>
     {
         return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )

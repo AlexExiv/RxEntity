@@ -40,7 +40,8 @@ public struct REPageParams<Extra, CollectionExtra>
 public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, CollectionExtra>: REPaginatorObservableExtra<Entity, Extra>
 {
     public typealias Element = [Entity]
-    public typealias PageFetchCallback<Extra, CollectionExtra> = (REPageParams<Extra, CollectionExtra>) -> Single<[REBackEntityProtocol]>
+    public typealias PageFetchCallback<Extra, CollectionExtra> = (REPageParams<Extra, CollectionExtra>) -> Single<[Entity]>
+    public typealias PageFetchBackCallback<Extra, CollectionExtra> = (REPageParams<Extra, CollectionExtra>) -> Single<[REBackEntityProtocol]>
     
     let rxMiddleware = BehaviorRelay<Element?>( value: nil )
     let rxPage = PublishRelay<REPageParams<Extra, CollectionExtra>>()
@@ -59,12 +60,12 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
             .do( onNext: { _ in _self?.rxLoader.accept( true ) } )
             .flatMapLatest( {
                 fetch( $0 )
-                    .map { $0.map { Entity( entity: $0 ) } }
                     .asObservable()
                     .do( onNext: { _self?.Set( keys: $0.map { $0._key } ) } )
                     .catchError
                     {
                         _self?.rxError.accept( $0 )
+                        _self?.rxLoader.accept( false )
                         return Observable.just( [] )
                     }
             } )
@@ -115,6 +116,16 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         self.init( holder: holder, keys: initial.map { $0._key }, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
         rxMiddleware.accept( initial )
         started = true
+    }
+    
+    convenience init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = 35, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
+    {
+        self.init( holder: holder, keys: keys, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
+    }
+    
+    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
+    {
+        self.init( holder: holder, initial: initial, collectionExtra: collectionExtra, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
     
     public override func Refresh( resetCache: Bool = false, extra: Extra? = nil )

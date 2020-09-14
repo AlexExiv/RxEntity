@@ -113,7 +113,7 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( f.id, "1" )
         XCTAssertEqual( f.value, "2" )
         
-        let pages = collection.CreatePaginator { _ in Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] ) }
+        let pages = collection.CreatePaginatorBack { _ in Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] ) }
         let arr = try! pages
             .toBlocking()
             .first()!
@@ -252,7 +252,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.page, 0 )
             }
             
-            return Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] )
+            return Single.just( [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
             
         }
         
@@ -293,7 +293,7 @@ class REEntityObservableTests: XCTestCase
             .toBlocking()
             .first()!
 
-        let pages = collection.CreatePaginatorExtra( extra: ExtraParams( test: "test" ) )
+        let pages = collection.CreatePaginatorBackExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
             {
@@ -347,7 +347,7 @@ class REEntityObservableTests: XCTestCase
             
         }
         
-        let pages = collection.CreatePaginatorExtra( extra: ExtraParams( test: "test" ) )
+        let pages = collection.CreatePaginatorBackExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
             {
@@ -425,12 +425,12 @@ class REEntityObservableTests: XCTestCase
     func testArrayInitial()
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
-        collection.arrayFetchCallback =
+        collection.arrayFetchBackCallback =
         {
             pp in Single.just( pp.keys.map { TestEntityBack( id: $0.stringKey, value: pp.collectionExtra!.test + $0.stringKey ) } )
         }
         
-        let array = collection.CreateArray(initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )])
+        let array = collection.CreateArray( initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
         
         var s = try! array
             .toBlocking()
@@ -512,7 +512,7 @@ class REEntityObservableTests: XCTestCase
         let rxObs1 = BehaviorSubject( value: "3" )
         collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
         collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
-        let pager = collection.CreatePaginator( perPage: 2 ) {
+        let pager = collection.CreatePaginatorBack( perPage: 2 ) {
             if ($0.page == 0)
             {
                 return Single.just([TestEntityBack(id: "1", value: "1"), TestEntityBack(id: "2", value: "1")])
