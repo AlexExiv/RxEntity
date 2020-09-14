@@ -16,16 +16,69 @@ import RxBlocking
 
 @testable import RxEntity
 
-struct TestEnity: REEntity
+protocol TestEntityBackProtocol: REBackEntityProtocol
 {
-    var key: REEntityKey { return REEntityKey( id ) }
+    var id: String { get }
+    var value: String { get }
+    
+    init( entity: TestEntityBackProtocol )
+}
+
+extension TestEntityBackProtocol
+{
+    var _key: REEntityKey { return REEntityKey( id ) }
+    
+    init( entity: REBackEntityProtocol )
+    {
+        self.init( entity: entity as! TestEntityBackProtocol )
+    }
+}
+
+struct TestEntityBack: TestEntityBackProtocol
+{
+    let id: String
+    let value: String
+    
+    init( id: String, value: String )
+    {
+        self.id = id
+        self.value = value
+    }
+    
+    init( entity: TestEntityBackProtocol )
+    {
+        id = entity.id
+        value = entity.value
+    }
+}
+
+struct TestEntity: REEntity
+{
+    var _key: REEntityKey { return REEntityKey( id ) }
     
     let id: String
     let value: String
     
-    func Modified( value: String ) -> TestEnity
+    init( entity: REBackEntityProtocol )
     {
-        return TestEnity( id: id, value: value )
+        self.init( entity: entity as! TestEntityBackProtocol )
+    }
+    
+    init( entity: TestEntityBackProtocol )
+    {
+        id = entity.id
+        value = entity.value
+    }
+    
+    init( id: String, value: String )
+    {
+        self.id = id
+        self.value = value
+    }
+    
+    func Modified( value: String ) -> TestEntity
+    {
+        return TestEntity( id: id, value: value )
     }
 }
 
@@ -44,13 +97,13 @@ class REEntityObservableTests: XCTestCase
 {
     func test()
     {
-        let collection = REEntityObservableCollection<TestEnity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
-        let single = collection.CreateSingle { _ in Single.just( TestEnity( id: "1", value: "2" ) ) }
+        let collection = REEntityObservableCollection<TestEntity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let single = collection.CreateSingleBack { _ in Single.just( TestEntityBack( id: "1", value: "2" ) ) }
         let f = try! single
             .toBlocking()
             .first()!
         /*
-        let kp = \TestEnity.id
+        let kp = \TestEntity.id
         let p = f[keyPath: kp]
         f[keyPath: kp] = "23"
         let m = Mirror( reflecting: f )
@@ -60,7 +113,7 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( f.id, "1" )
         XCTAssertEqual( f.value, "2" )
         
-        let pages = collection.CreatePaginator { _ in Single.just( [TestEnity( id: "1", value: "3" ), TestEnity( id: "2", value: "4" )] ) }
+        let pages = collection.CreatePaginator { _ in Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] ) }
         let arr = try! pages
             .toBlocking()
             .first()!
@@ -122,7 +175,7 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( arr2[1].value, "1\(arr2[1].id)" )
         
         let f3_ = try! collection
-            .RxUpdate( entity: TestEnity( id: "1", value: "25" ) )
+            .RxUpdate( entity: TestEntity( id: "1", value: "25" ) )
             .toBlocking()
             .first()!
         
@@ -158,7 +211,7 @@ class REEntityObservableTests: XCTestCase
     
     func testExtra()
     {
-        let collection = REEntityObservableCollection<TestEnity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let collection = REEntityObservableCollection<TestEntity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let single = collection.CreateSingleExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
@@ -171,7 +224,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.refreshing, true )
             }
             
-            return Single.just( TestEnity( id: "1", value: "2" ) )
+            return Single.just( TestEntity( id: "1", value: "2" ) )
             
         }
         
@@ -199,7 +252,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.page, 0 )
             }
             
-            return Single.just( [TestEnity( id: "1", value: "3" ), TestEnity( id: "2", value: "4" )] )
+            return Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] )
             
         }
         
@@ -218,8 +271,8 @@ class REEntityObservableTests: XCTestCase
     
     func testCollectionExtra()
     {
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
-        let single = collection.CreateSingleExtra( extra: ExtraParams( test: "test" ) )
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        let single = collection.CreateSingleBackExtra( extra: ExtraParams( test: "test" ) )
         {
             if $0.first
             {
@@ -232,7 +285,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.refreshing, true )
             }
             
-            return Single.just( TestEnity( id: "1", value: "2" ) )
+            return Single.just( TestEntityBack( id: "1", value: "2" ) )
             
         }
         
@@ -254,7 +307,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.page, 0 )
             }
             
-            return Single.just( [TestEnity( id: "1", value: "3" ), TestEnity( id: "2", value: "4" )] )
+            return Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] )
             
         }
         
@@ -278,8 +331,8 @@ class REEntityObservableTests: XCTestCase
     func testArrayGetSingle()
     {
         var i = 0
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
-        collection.singleFetchCallback =
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        collection.singleFetchBackCallback =
         {
             if $0.first
             {
@@ -290,7 +343,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.refreshing, true )
             }
             
-            return Single.just( TestEnity( id: $0.lastEntity!.id, value: $0.collectionExtra!.test + (i == 0 ? "sr" : "") + $0.lastEntity!.id ) )
+            return Single.just( TestEntityBack( id: $0.lastEntity!.id, value: $0.collectionExtra!.test + (i == 0 ? "sr" : "") + $0.lastEntity!.id ) )
             
         }
         
@@ -308,7 +361,7 @@ class REEntityObservableTests: XCTestCase
                 XCTAssertEqual( $0.page, 0 )
             }
             
-            return Single.just( [TestEnity( id: "1", value: $0.collectionExtra!.test + "1" ), TestEnity( id: "2", value: $0.collectionExtra!.test + "2" )] )
+            return Single.just( [TestEntityBack( id: "1", value: $0.collectionExtra!.test + "1" ), TestEntityBack( id: "2", value: $0.collectionExtra!.test + "2" )] )
             
         }
         
@@ -371,13 +424,13 @@ class REEntityObservableTests: XCTestCase
     
     func testArrayInitial()
     {
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "test" ) )
         collection.arrayFetchCallback =
         {
-            pp in Single.just( pp.keys.map { TestEnity( id: $0.stringKey, value: pp.collectionExtra!.test + $0.stringKey ) } )
+            pp in Single.just( pp.keys.map { TestEntityBack( id: $0.stringKey, value: pp.collectionExtra!.test + $0.stringKey ) } )
         }
         
-        let array = collection.CreateArray(initial: [TestEnity( id: "1", value: "3" ), TestEnity( id: "2", value: "4" )])
+        let array = collection.CreateArray(initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )])
         
         var s = try! array
             .toBlocking()
@@ -415,39 +468,46 @@ class REEntityObservableTests: XCTestCase
     
     func testMergeWithSingle()
     {
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
         collection.combineLatest( rxObs, rxObs1 ) { $0.Modified( value: $1 + $2 ) }
         collection.combineLatest( rxObs ) { $0.Modified( value: $1 ) }
         collection.combineLatest( rxObs1 ) { $0.Modified( value: $1 ) }
-        let single0 = collection.CreateSingle( key: "1" ) { _ in Single.just( TestEnity( id: "1", value: "1" ) ) }
+        let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
 
-        var disp = single0.subscribe( onNext: {
-            XCTAssertEqual($0.id, "1")
-            XCTAssertEqual($0.value, "3")
-        })
-        disp.dispose()
+        var s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "3" )
 
-        rxObs.onNext("4")
-        rxObs1.onNext("4")
-        disp = single0.subscribe( onNext: {
-            XCTAssertEqual($0.id, "1")
-            XCTAssertEqual($0.value, "4")
-        })
-        disp.dispose()
+        rxObs.onNext( "4" )
+        rxObs1.onNext( "4" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "4" )
 
-        rxObs1.onNext("5")
-        disp = single0.subscribe( onNext: {
-            XCTAssertEqual($0.id, "1")
-            XCTAssertEqual($0.value, "5")
-        })
-        disp.dispose()
+        rxObs1.onNext( "5" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "5" )
     }
     
     func testMergeWithPaginator()
     {
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
         collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
@@ -455,49 +515,59 @@ class REEntityObservableTests: XCTestCase
         let pager = collection.CreatePaginator( perPage: 2 ) {
             if ($0.page == 0)
             {
-                return Single.just([TestEnity(id: "1", value: "1"), TestEnity(id: "2", value: "1")])
+                return Single.just([TestEntityBack(id: "1", value: "1"), TestEntityBack(id: "2", value: "1")])
             }
             else
             {
-                return Single.just([TestEnity(id: "3", value: "1"), TestEnity(id: "4", value: "1")])
+                return Single.just([TestEntityBack(id: "3", value: "1"), TestEntityBack(id: "4", value: "1")])
             }
         }
+        
+        var s =  try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.count, 2 )
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "13" )
 
-        var disp = pager.subscribe( onNext: {
-            XCTAssertEqual($0.count, 2)
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "13")
-        })
-        disp.dispose()
+        rxObs.onNext( "4" )
+        rxObs1.onNext( "4" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "14" )
 
-        rxObs.onNext("4")
-        rxObs1.onNext("4")
-        disp = pager.subscribe( onNext: {
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "14")
-        })
-        disp.dispose()
-
-        rxObs1.onNext("5")
-        disp = pager.subscribe( onNext: {
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "15")
-        })
-        disp.dispose()
+        rxObs1.onNext( "5" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "15" )
 
         pager.Next()
-        disp = pager.subscribe( onNext: {
-            XCTAssertEqual($0.count, 4)
-            XCTAssertEqual($0[2].id, "3")
-            XCTAssertEqual($0[2].value, "35")
-        })
-        disp.dispose()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+
+        XCTAssertEqual( s.count, 4 )
+        XCTAssertEqual( s[2].id, "3" )
+        XCTAssertEqual( s[2].value, "35" )
     }
     
     func testArrayInitialMerge()
     {
         var i = 0
-        let collection = REEntityObservableCollectionExtra<TestEnity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
 
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
@@ -508,28 +578,35 @@ class REEntityObservableTests: XCTestCase
             Single.just( [] )
         }
 
-        let array = collection.CreateArray( initial: [TestEnity( id: "1", value: "2" ), TestEnity( id: "2", value: "3" ) ] )
-
-        var disp = array.subscribe( onNext: {
-            XCTAssertEqual($0.count, 2)
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "13")
-        })
-        disp.dispose()
+        let array = collection.CreateArray( initial: [TestEntity( id: "1", value: "2" ), TestEntity( id: "2", value: "3" ) ] )
+        
+        var s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.count, 2 )
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "13" )
 
         rxObs.onNext("4")
         rxObs1.onNext("4")
-        disp = array.subscribe( onNext: {
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "14")
-        })
-        disp.dispose()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "14" )
 
         rxObs1.onNext("5")
-        disp = array.subscribe( onNext: {
-            XCTAssertEqual($0[0].id, "1")
-            XCTAssertEqual($0[0].value, "15")
-        })
-        disp.dispose()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "15" )
     }
 }

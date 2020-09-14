@@ -29,7 +29,7 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
         assert( queue.operationQueue == OperationQueue.current, "Append can be updated only from the specified in the constructor OperationQueue" )
         
         var _entities = self.entities ?? []
-        _entities.append( contentsOf: entities )
+        _entities.AppendOrReplace( entities: entities )
         Set( page: entities.count == perPage ? page + 1 : PAGINATOR_END )
         return _entities
     }

@@ -40,7 +40,7 @@ public struct REPageParams<Extra, CollectionExtra>
 public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, CollectionExtra>: REPaginatorObservableExtra<Entity, Extra>
 {
     public typealias Element = [Entity]
-    public typealias PageFetchCallback<Extra, CollectionExtra> = (REPageParams<Extra, CollectionExtra>) -> Single<Element>
+    public typealias PageFetchCallback<Extra, CollectionExtra> = (REPageParams<Extra, CollectionExtra>) -> Single<[REBackEntityProtocol]>
     
     let rxMiddleware = BehaviorRelay<Element?>( value: nil )
     let rxPage = PublishRelay<REPageParams<Extra, CollectionExtra>>()
@@ -59,8 +59,9 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
             .do( onNext: { _ in _self?.rxLoader.accept( true ) } )
             .flatMapLatest( {
                 fetch( $0 )
+                    .map { $0.map { Entity( entity: $0 ) } }
                     .asObservable()
-                    .do( onNext: { _self?.Set( keys: $0.map { $0.key } ) } )
+                    .do( onNext: { _self?.Set( keys: $0.map { $0._key } ) } )
                     .catchError
                     {
                         _self?.rxError.accept( $0 )
@@ -111,7 +112,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     
     convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping PageFetchCallback<Extra, CollectionExtra> )
     {
-        self.init( holder: holder, keys: initial.map { $0.key }, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
+        self.init( holder: holder, keys: initial.map { $0._key }, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
         rxMiddleware.accept( initial )
         started = true
     }

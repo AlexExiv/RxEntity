@@ -38,7 +38,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     {
         assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
         
-        if let key = self.entity?.key, key == entity.key, source != uuid
+        if let key = self.entity?._key, key == entity._key, source != uuid
         {
             rxPublish.onNext( entity )
         }
@@ -48,7 +48,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     {
         assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
         
-        if let key = entity?.key, let entity = entities[key], source != uuid
+        if let key = entity?._key, let entity = entities[key], source != uuid
         {
             rxPublish.onNext( entity )
         }

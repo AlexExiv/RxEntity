@@ -23,6 +23,7 @@
 		FB0F774423F1830500F71B91 /* RESingleObservable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F773B23F1830500F71B91 /* RESingleObservable.swift */; };
 		FB0F774523F1830500F71B91 /* REEntityObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */; };
 		FB0F774723F1833F00F71B91 /* REEntityObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */; };
+		FB416491250F48EC0015597E /* Array+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB416490250F48EC0015597E /* Array+Ext.swift */; };
 		FB4BC502250E79A5008600D8 /* RERepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4BC501250E79A5008600D8 /* RERepository.swift */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +60,7 @@
 		FB0F773B23F1830500F71B91 /* RESingleObservable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RESingleObservable.swift; sourceTree = "<group>"; };
 		FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableCollection.swift; sourceTree = "<group>"; };
 		FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableTests.swift; sourceTree = "<group>"; };
+		FB416490250F48EC0015597E /* Array+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Ext.swift"; sourceTree = "<group>"; };
 		FB4BC501250E79A5008600D8 /* RERepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RERepository.swift; sourceTree = "<group>"; };
 		FF580E9F25EDE9341E484563 /* Pods_RxEntity.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RxEntity.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -140,6 +142,7 @@
 				FB0F773223F17EF700F71B91 /* RxEntity.podspec */,
 				FB0F771C23F17DDD00F71B91 /* Info.plist */,
 				FB4BC501250E79A5008600D8 /* RERepository.swift */,
+				FB416490250F48EC0015597E /* Array+Ext.swift */,
 			);
 			path = RxEntity;
 			sourceTree = "<group>";
@@ -338,6 +341,7 @@
 				FB0F773D23F1830500F71B91 /* REPaginatorObservableCollectionExtra.swift in Sources */,
 				FB0F774323F1830500F71B91 /* REEntity.swift in Sources */,
 				FB0F774523F1830500F71B91 /* REEntityObservableCollection.swift in Sources */,
+				FB416491250F48EC0015597E /* Array+Ext.swift in Sources */,
 				FB0F774023F1830500F71B91 /* REEntityObservable.swift in Sources */,
 				FB0F773E23F1830500F71B91 /* REArrayObservable.swift in Sources */,
 				FB4BC502250E79A5008600D8 /* RERepository.swift in Sources */,

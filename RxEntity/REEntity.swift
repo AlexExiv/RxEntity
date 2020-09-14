@@ -12,7 +12,14 @@ public typealias REEntityKey = AnyHashable
 
 public protocol REEntity
 {
-    var key: REEntityKey { get }
+    var _key: REEntityKey { get }
+    init( entity: REBackEntityProtocol )
+}
+
+public protocol REBackEntityProtocol
+{
+    var _key: REEntityKey { get }
+    init( entity: REBackEntityProtocol )
 }
 
 extension AnyHashable

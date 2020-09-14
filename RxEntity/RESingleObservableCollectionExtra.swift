@@ -35,6 +35,7 @@ public struct RESingleParams<Entity: REEntity, Extra, CollectionExtra>
 
 public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, CollectionExtra>: RESingleObservableExtra<Entity, Extra>
 {
+    public typealias SingleFetchBackCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<REBackEntityProtocol>
     public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity>
     
     let rxMiddleware = BehaviorRelay<Entity?>( value: nil )
@@ -63,7 +64,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
                         return Observable.empty()
                     }
             }
-            .do( onNext: { _self?.Set( key: $0.key ) } )
+            .do( onNext: { _self?.Set( key: $0._key ) } )
             .do( onNext: { _ in _self?.rxLoader.accept( false ) } )
             .flatMapLatest { _self?.collection?.RxUpdate( entity: $0 ).asObservable() ?? Observable.empty() }
             .observeOn( observeOn )
@@ -107,9 +108,19 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
     
     convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchCallback )
     {
-        self.init( holder: holder, key: initial.key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
+        self.init( holder: holder, key: initial._key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
         rxPublish.onNext( initial )
         started = !refresh
+    }
+    
+    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchBackCallback )
+    {
+        self.init( holder: holder, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { Entity( entity: $0 ) } } )
+    }
+    
+    convenience init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchBackCallback )
+    {
+        self.init( holder: holder, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { Entity( entity: $0 ) } } )
     }
     
     override func _Refresh( resetCache: Bool = false, extra: Extra? = nil )

@@ -23,12 +23,16 @@ struct RECombineSource<E>
 
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>
 {
+    public typealias SingleFetchBackCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchBackCallback
+    public typealias SingleExtraFetchBackCallback<Extra> = RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>.SingleFetchBackCallback
+    
     public typealias SingleFetchCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchCallback
     public typealias SingleExtraFetchCallback<Extra> = RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>.SingleFetchCallback
     
     public typealias PageFetchCallback = REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.PageFetchCallback<REEntityExtraParamsEmpty, CollectionExtra>
     public typealias PageExtraFetchCallback<Extra> = REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>.PageFetchCallback<Extra, CollectionExtra>
     
+    public var singleFetchBackCallback: SingleFetchBackCallback? = nil
     public var singleFetchCallback: SingleFetchCallback? = nil
     public var arrayFetchCallback: PageFetchCallback? = nil
     
@@ -47,17 +51,14 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 
     //MARK: - Single Observables
-    public override func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>
+    public func CreateSingleBack( key: REEntityKey? = nil, start: Bool = true, _ fetch: @escaping SingleFetchBackCallback ) -> RESingleObservable<Entity>
     {
-        assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
-        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: singleFetchCallback! )
+        return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, key: key, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
-    
-    public func CreateSingle( key: REEntityKey, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
+
+    public func CreateSingleBackExtra<Extra>( key: REEntityKey? = nil, extra: Extra? = nil, start: Bool = true, _ fetch: @escaping SingleExtraFetchBackCallback<Extra> ) -> RESingleObservableExtra<Entity, Extra>
     {
-        assert( singleFetchCallback != nil, "To create Single with initial value you must specify singleFetchCallback before" )
-        let e = sharedEntities[key]
-        return e == nil ? CreateSingle( key: key, start: start, singleFetchCallback! ) : CreateSingle( initial: e!, refresh: refresh )
+        return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
     public func CreateSingle( key: REEntityKey? = nil, start: Bool = true, _ fetch: @escaping SingleFetchCallback ) -> RESingleObservable<Entity>
@@ -68,6 +69,40 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public func CreateSingleExtra<Extra>( key: REEntityKey? = nil, extra: Extra? = nil, start: Bool = true, _ fetch: @escaping SingleExtraFetchCallback<Extra> ) -> RESingleObservableExtra<Entity, Extra>
     {
         return RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public override func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>
+    {
+        if singleFetchCallback != nil
+        {
+            return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: singleFetchCallback! )
+        }
+        else if singleFetchBackCallback != nil
+        {
+            return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: singleFetchBackCallback! )
+        }
+        
+        precondition( false, "To create Single with initial value you must specify singleFetchCallback or singleFetchBackCallback before" )
+    }
+    
+    public func CreateSingle( key: REEntityKey, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
+    {
+        let e = sharedEntities[key]
+        if e == nil
+        {
+            if singleFetchCallback != nil
+            {
+                return CreateSingle( key: key, start: start, singleFetchCallback! )
+            }
+            else if singleFetchBackCallback != nil
+            {
+                return CreateSingleBack( key: key, start: start, singleFetchBackCallback! )
+            }
+            
+            precondition( false, "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+        }
+        
+        return CreateSingle( initial: e!, refresh: refresh )
     }
     
     //MARK: - Array Observables
@@ -224,9 +259,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                 var updArr = [Entity](), updMap = [REEntityKey: Entity]()
                 let Update: (Entity, EntityS) -> Void = {
                     let new = update( $0, $1 )
-                    self?.sharedEntities[$0.key] = new
+                    self?.sharedEntities[$0._key] = new
                     updArr.append( new )
-                    updMap[$0.key] = new
+                    updMap[$0._key] = new
                 }
                 self?.sharedEntities.forEach
                 {
@@ -234,7 +269,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                     
                     underPathes.forEach
                     {
-                        if let v = e0.value[keyPath: $0] as? EntityS, let es = entities[v.key]
+                        if let v = e0.value[keyPath: $0] as? EntityS, let es = entities[v._key]
                         {
                             Update( e0.value, es )
                         }
@@ -243,7 +278,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                             arr.forEach
                             {
                                 e1 in
-                                if let es = entities[e1.key]
+                                if let es = entities[e1._key]
                                 {
                                     Update( e0.value, es )
                                 }

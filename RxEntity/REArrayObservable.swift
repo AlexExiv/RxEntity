@@ -47,7 +47,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     {
         assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
         
-        if var entities = self.entities, let i = entities.firstIndex( where: { entity.key == $0.key } ), source != uuid
+        if var entities = self.entities, let i = entities.firstIndex( where: { entity._key == $0._key } ), source != uuid
         {
             entities[i] = entity
             rxPublish.onNext( entities )
@@ -64,7 +64,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         for i in 0..<_entities.count
         {
             let e = _entities[i]
-            if let ne = entities[e.key]
+            if let ne = entities[e._key]
             {
                 _entities[i] = ne
                 was = true
