@@ -17,8 +17,8 @@ public struct REEntityExtraParamsEmpty
 
 public class REEntityObservable<Entity: REEntity>
 {
-    let rxLoader = BehaviorRelay<Bool>( value: false )
-    let rxError = PublishRelay<Error>()
+    public let rxLoader = BehaviorRelay<Bool>( value: false )
+    public let rxError = PublishRelay<Error>()
     
     let dispBag = DisposeBag()
     

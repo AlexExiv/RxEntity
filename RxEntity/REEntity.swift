@@ -22,7 +22,7 @@ public protocol REBackEntityProtocol
     init( entity: REBackEntityProtocol )
 }
 
-extension AnyHashable
+public extension AnyHashable
 {
     var stringKey: String
     {
