@@ -57,7 +57,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         weak var _self = self
         var obs = rxPage
             .filter { $0.page >= 0 }
-            .do( onNext: { _ in _self?.rxLoader.accept( true ) } )
+            .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
             .flatMapLatest( {
                 fetch( $0 )
                     .asObservable()
@@ -65,14 +65,14 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
                     .catchError
                     {
                         _self?.rxError.accept( $0 )
-                        _self?.rxLoader.accept( false )
+                        _self?.rxLoader.accept( .none )
                         return Observable.just( [] )
                     }
             } )
             .flatMap( { _self?.collection?.RxUpdate( source: _self?.uuid ?? "", entities: $0 ) ?? Single.just( [] ) } )
             .observeOn( observeOn )
             .map( { _self?.Append( entities: $0 ) ?? [] } )
-            .do( onNext: { _ in _self?.rxLoader.accept( false ) } )
+            .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
         
         obs
             .bind( to: rxMiddleware )
@@ -145,7 +145,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     
     public override func Next()
     {
-        if rxLoader.value
+        if rxLoader.value == .firstLoading || rxLoader.value == .loading
         {
             return
         }

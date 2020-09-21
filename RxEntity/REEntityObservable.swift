@@ -17,7 +17,12 @@ public struct REEntityExtraParamsEmpty
 
 public class REEntityObservable<Entity: REEntity>
 {
-    public let rxLoader = BehaviorRelay<Bool>( value: false )
+    public enum Loading
+    {
+        case none, firstLoading, loading
+    }
+    
+    public let rxLoader = BehaviorRelay<Loading>( value: .none )
     public let rxError = PublishRelay<Error>()
     
     let dispBag = DisposeBag()
@@ -57,7 +62,7 @@ public class REEntityObservable<Entity: REEntity>
 
 extension REEntityObservable
 {
-    public func bind( loader: BehaviorRelay<Bool> ) -> Disposable
+    public func bind( loader: BehaviorRelay<REEntityObservable.Loading> ) -> Disposable
     {
         return rxLoader.bind( to: loader )
     }

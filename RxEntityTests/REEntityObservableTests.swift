@@ -609,4 +609,65 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[0].id, "1" )
         XCTAssertEqual( s[0].value, "15" )
     }
+    
+    func testSingleStateAndLoading()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        let single = collection.CreateSingle( start: false )
+        {
+            $0.first ? Single.just( nil ) : Single.just( TestEntity( id: "1", value: "2" ) )
+        }
+
+        var s = try! single
+            .rxState
+            .toBlocking()
+            .first()!
+        
+        var l = try! single
+            .rxLoader
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s, RESingleObservableExtra.State.initializing )
+        XCTAssertEqual( l, REEntityObservable.Loading.none )
+        
+        single.Refresh()
+        
+        l = try! single
+            .rxLoader
+            .filter { $0 == .firstLoading }
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( l, REEntityObservable.Loading.firstLoading )
+        
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single
+            .rxState
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s, RESingleObservableExtra.State.notFound )
+        
+        single.Refresh()
+        
+        l = try! single
+            .rxLoader
+            .filter { $0 == .loading }
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( l, REEntityObservable.Loading.loading )
+        
+        
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single
+            .rxState
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s, RESingleObservableExtra.State.ready )
+    }
 }

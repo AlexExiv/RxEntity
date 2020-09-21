@@ -14,7 +14,14 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
 {
     public typealias Element = Entity
     
+    public enum State
+    {
+        case initializing, ready, notFound
+    }
+    
     let queue: OperationQueueScheduler
+    
+    public let rxState = BehaviorRelay<State>( value: .initializing )
     let rxPublish = BehaviorSubject<Entity?>( value: nil )
     
     public private(set) var extra: Extra? = nil

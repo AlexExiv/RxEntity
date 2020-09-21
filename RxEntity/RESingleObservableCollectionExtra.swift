@@ -35,8 +35,8 @@ public struct RESingleParams<Entity: REEntity, Extra, CollectionExtra>
 
 public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, CollectionExtra>: RESingleObservableExtra<Entity, Extra>
 {
-    public typealias SingleFetchBackCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<REBackEntityProtocol>
-    public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity>
+    public typealias SingleFetchBackCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<REBackEntityProtocol?>
+    public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity?>
     
     let rxMiddleware = BehaviorRelay<Entity?>( value: nil )
     let _rxRefresh = PublishRelay<RESingleParams<Entity, Extra, CollectionExtra>>()
@@ -51,21 +51,40 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         
         weak var _self = self
         var obs = _rxRefresh
-            .do( onNext: { _ in _self?.rxLoader.accept( true ) } )
+            .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
             .flatMapLatest
             {
                 fetch( $0 )
                     .asObservable()
+                    .flatMap
+                    {
+                        e -> Observable<Entity> in
+                        
+                        if e == nil
+                        {
+                            //_self?.rxState.accept( .notFound )
+                            return Observable.error( NSError( domain: "", code: 404, userInfo: nil ) )
+                        }
+                        
+                        return Observable.just( e! )
+                    }
                     .catchError
                     {
                         e -> Observable<Entity> in
-                        _self?.rxError.accept( e )
-                        _self?.rxLoader.accept( false )
+                        if (e as NSError).code == 404
+                        {
+                            _self?.rxState.accept( .notFound )
+                        }
+                        else
+                        {
+                            _self?.rxError.accept( e )
+                        }
+                        _self?.rxLoader.accept( .none )
                         return Observable.empty()
                     }
             }
             .do( onNext: { _self?.Set( key: $0._key ) } )
-            .do( onNext: { _ in _self?.rxLoader.accept( false ) } )
+            .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
             .flatMapLatest { _self?.collection?.RxUpdate( entity: $0 ).asObservable() ?? Observable.empty() }
             .observeOn( observeOn )
         
@@ -96,6 +115,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
         
         obs
+            .do( onNext: { _ in _self?.rxState.accept( .ready ) } )
             .bind( to: rxPublish )
             .disposed( by: dispBag )
         
@@ -115,12 +135,12 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
     
     convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchBackCallback )
     {
-        self.init( holder: holder, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { Entity( entity: $0 ) } } )
+        self.init( holder: holder, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { $0 == nil ? nil : Entity( entity: $0! ) } } )
     }
     
     convenience init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchBackCallback )
     {
-        self.init( holder: holder, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { Entity( entity: $0 ) } } )
+        self.init( holder: holder, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: observeOn, combineSources: combineSources, fetch: { fetch( $0 ).map { $0 == nil ? nil : Entity( entity: $0! ) } } )
     }
     
     override func _Refresh( resetCache: Bool = false, extra: Extra? = nil )
