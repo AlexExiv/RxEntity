@@ -28,6 +28,8 @@ public class REEntityObservable<Entity: REEntity>
     let dispBag = DisposeBag()
     
     public let uuid = UUID().uuidString
+    let lock = NSRecursiveLock()
+    
     public private(set) weak var collection: REEntityCollection<Entity>? = nil
     let combineSources: [RECombineSource<Entity>]
     

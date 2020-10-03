@@ -77,13 +77,11 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }
     
-    subscript( index: Int ) -> RESingleObservable<Entity>
-    {
-        return collection!.CreateSingle( initial: entitiesNotNil[index] )
-    }
-    
     func Set( keys: [REEntityKey] )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         self.keys = keys
     }
     
@@ -111,6 +109,24 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     func Set( page: Int )
     {
         self.page = page
+    }
+    
+    //MARK: - Array operations
+    
+    public subscript( index: Int ) -> RESingleObservable<Entity>
+    {
+        return collection!.CreateSingle( initial: entitiesNotNil[index] )
+    }
+    
+    public func Append( entity: Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        var entities = self.entities ?? []
+        entities.append( entity )
+        keys.append( entity._key )
+        rxPublish.onNext( entities )
     }
     
     //MARK: - ObservableType
