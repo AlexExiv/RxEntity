@@ -94,14 +94,14 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
             case 5:
                 obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { (es, t0, t1, t2, t3, t4) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4] ) } } )
             case 6:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[6], resultSelector: { (es, t0, t1, t2, t3, t4, t5) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4, t5] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[5], resultSelector: { (es, t0, t1, t2, t3, t4, t5) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4, t5] ) } } )
             default:
                 assert( false, "Unsupported number of the sources" )
             }
         }
         
         obs
-            .bind( to: rxPublish )
+            .subscribe( onNext: { _self?.Set( entities: $0 ) } )
             .disposed( by: dispBag )
         
         if start
@@ -159,6 +159,25 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
             Refresh()
         }
     }
+    
+    func CombineSources( combine: CombineMethod<Entity>, values: Any... )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        let _entities = entities.map { combine( $0, values ) }
+        Set( entities: _entities )
+    }
+    /*
+    func CombineSources( entities: [Entity], combine: CombineMethod<Entity>, values: Any... ) -> [Entity]
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        let _entities = entities.map { combine( $0, values ) }
+        Set( entities: _entities )
+    }*/
+    
     
     //MARK: - Collection
     func CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )

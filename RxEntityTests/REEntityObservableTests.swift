@@ -94,8 +94,21 @@ struct ExtraCollectionParams
 
 
 class REEntityObservableTests: XCTestCase
-{
-    func test()
+{/*
+    func testShare()  throws
+    {
+        let dispBag = DisposeBag()
+        let rxPublish = PublishSubject<Int>()
+        let rxShare = rxPublish.share( replay: 1, scope: .forever )
+        rxPublish.onNext( 1 )
+        rxPublish.onNext( 2 )
+        
+        let x = try rxShare.toBlocking().first()!
+        rxPublish.subscribe( onNext: { print( "Number PUBLISH \($0)" ) } ).disposed( by: dispBag )
+        rxShare.subscribe( onNext: { print( "Number\($0)" ) } ).disposed( by: dispBag )
+    }*/
+    
+    func test() throws
     {
         let collection = REEntityObservableCollection<TestEntity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let single = collection.CreateSingleBack { _ in Single.just( TestEntityBack( id: "1", value: "2" ) ) }
@@ -114,6 +127,9 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( f.value, "2" )
         
         let pages = collection.CreatePaginatorBack { _ in Single.just( [TestEntityBack( id: "1", value: "3" ), TestEntityBack( id: "2", value: "4" )] ) }
+        
+        Thread.sleep( forTimeInterval: 0.5 )
+        
         let arr = try! pages
             .toBlocking()
             .first()!
@@ -137,6 +153,8 @@ class REEntityObservableTests: XCTestCase
             .toBlocking()
             .first()!
         
+        Thread.sleep( forTimeInterval: 0.5 )
+        
         let f1 = try! single
             .toBlocking()
             .first()!
@@ -144,14 +162,14 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( f1.id, "1" )
         XCTAssertEqual( f1.value, "10" )
         
-        let arr1 = try! pages
+        let arr1 = try pages
             .toBlocking()
-            .first()!
+            .first()
         
-        XCTAssertEqual( arr1[0].id, "1" )
-        XCTAssertEqual( arr1[0].value, "10" )
-        XCTAssertEqual( arr1[1].id, "2" )
-        XCTAssertEqual( arr1[1].value, "4" )
+        XCTAssertEqual( arr1![0].id, "1" )
+        XCTAssertEqual( arr1![0].value, "10" )
+        XCTAssertEqual( arr1![1].id, "2" )
+        XCTAssertEqual( arr1![1].value, "4" )
         
         _ = try! collection
             .RxRequestForUpdate( keys: [REEntityKey( "1" ), REEntityKey( "2" )] ) { $0.Modified( value: "1\($0.id)" ) }
@@ -365,6 +383,8 @@ class REEntityObservableTests: XCTestCase
             
         }
         
+        Thread.sleep( forTimeInterval: 0.5 )
+        
         _ = try! pages
             .toBlocking()
             .first()!
@@ -431,6 +451,8 @@ class REEntityObservableTests: XCTestCase
         }
         
         let array = collection.CreateArray( initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
+        
+        Thread.sleep( forTimeInterval: 0.5 )
         
         var s = try! array
             .toBlocking()
@@ -522,6 +544,8 @@ class REEntityObservableTests: XCTestCase
                 return Single.just([TestEntityBack(id: "3", value: "1"), TestEntityBack(id: "4", value: "1")])
             }
         }
+        
+        Thread.sleep( forTimeInterval: 0.5 )
         
         var s =  try! pager
             .toBlocking()

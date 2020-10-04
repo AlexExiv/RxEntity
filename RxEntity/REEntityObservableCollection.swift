@@ -15,10 +15,12 @@ public struct REEntityCollectionExtraParamsEmpty
     
 }
 
+typealias CombineMethod<E> = (E, Array<Any>) -> E
+
 struct RECombineSource<E>
 {
     let sources: [Observable<Any>]
-    let combine: (E, Array<Any>) -> E
+    let combine: CombineMethod<E>
 }
 
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>

@@ -14,7 +14,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
 {
     public typealias Element = [Entity]
     
-    let rxPublish = BehaviorSubject<Element?>( value: nil )
+    let rxPublish = BehaviorSubject<Element>( value: [] )
+    let rxObservable: Observable<Element>
     let queue: OperationQueueScheduler
 
     public private(set) var page = -1
@@ -23,22 +24,15 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
 
     public private(set) var keys: [REEntityKey] = []
     
-    public var entities: [Entity]?
-    {
-        return try! rxPublish.value()
-    }
-    
-    public var entitiesNotNil: [Entity]
-    {
-        return entities ?? []
-    }
-        
+    public private(set) var entities: [Entity] = []
+   
     init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
     {
         self.queue = observeOn
         self.keys = keys
         self.extra = extra
         self.perPage = perPage
+        rxObservable = rxPublish.share( replay: 1, scope: .forever )
         
         super.init( holder: holder, combineSources: combineSources )
     }
@@ -47,7 +41,10 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     {
         assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
         
-        if var entities = self.entities, let i = entities.firstIndex( where: { entity._key == $0._key } ), source != uuid
+        lock.lock()
+        defer { lock.unlock() }
+        
+        if let i = entities.firstIndex( where: { entity._key == $0._key } ), source != uuid
         {
             entities[i] = entity
             rxPublish.onNext( entities )
@@ -58,23 +55,35 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     {
         assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
         
-        guard var _entities = self.entities, source != uuid else { return }
+        guard source != uuid else { return }
+        
+        lock.lock()
+        defer { lock.unlock() }
         
         var was = false
-        for i in 0..<_entities.count
+        for i in 0..<self.entities.count
         {
-            let e = _entities[i]
+            let e = self.entities[i]
             if let ne = entities[e._key]
             {
-                _entities[i] = ne
+                self.entities[i] = ne
                 was = true
             }
         }
         
         if was
         {
-            rxPublish.onNext( _entities )
+            rxPublish.onNext( self.entities )
         }
+    }
+    
+    func Set( entities: [Entity] )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        self.entities = entities
+        rxPublish.onNext( self.entities )
     }
     
     func Set( keys: [REEntityKey] )
@@ -108,14 +117,19 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     
     func Set( page: Int )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         self.page = page
     }
     
     //MARK: - Array operations
-    
     public subscript( index: Int ) -> RESingleObservable<Entity>
     {
-        return collection!.CreateSingle( initial: entitiesNotNil[index] )
+        lock.lock()
+        defer { lock.unlock() }
+        
+        return collection!.CreateSingle( initial: entities[index] )
     }
     
     public func Append( entity: Entity )
@@ -123,7 +137,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         lock.lock()
         defer { lock.unlock() }
         
-        var entities = self.entities ?? []
         entities.append( entity )
         keys.append( entity._key )
         rxPublish.onNext( entities )
@@ -132,18 +145,19 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     //MARK: - ObservableType
     public func subscribe<Observer: ObserverType>( _ observer: Observer ) -> Disposable where Observer.Element == Element
     {
-        return rxPublish
-            .filter { $0 != nil }
-            .map { $0! }
+        lock.lock()
+        defer { lock.unlock() }
+        
+        let disp = rxPublish
             .subscribe( observer )
+        
+        observer.onNext( entities )
+        return disp
     }
     
     public func asObservable() -> Observable<Element>
     {
         return rxPublish
-            .filter { $0 != nil }
-            .map { $0! }
-            .asObservable()
     }
 }
 
