@@ -69,7 +69,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
                         return Observable.just( [] )
                     }
             } )
-            //.flatMap( { _self?.collection?.RxUpdate( source: _self?.uuid ?? "", entities: $0 ) ?? Single.just( [] ) } )
+            .flatMap( { _self?.collection?.RxUpdate( source: _self?.uuid ?? "", entities: $0 ) ?? Single.just( [] ) } )
             .observeOn( observeOn )
             .map( { _self?.Append( entities: $0 ) ?? [] } )
             .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )

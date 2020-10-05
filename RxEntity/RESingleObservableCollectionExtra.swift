@@ -85,7 +85,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
             }
             .do( onNext: { _self?.Set( key: $0._key ) } )
             .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
-            //.flatMapLatest { _self?.collection?.RxUpdate( entity: $0 ).asObservable() ?? Observable.empty() }
+            .flatMapLatest { _self?.collection?.RxUpdate( entity: $0 ).asObservable() ?? Observable.empty() }
             .observeOn( observeOn )
         
         obs
