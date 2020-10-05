@@ -21,7 +21,7 @@ public class REEntityObservable<Entity: REEntity>
     {
         case none, firstLoading, loading
         
-        var isLoading: Bool { self == .firstLoading || self == .loading }
+        public var isLoading: Bool { self == .firstLoading || self == .loading }
     }
     
     public let rxLoader = BehaviorRelay<Loading>( value: .none )
