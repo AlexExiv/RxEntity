@@ -20,6 +20,8 @@ public class REEntityObservable<Entity: REEntity>
     public enum Loading
     {
         case none, firstLoading, loading
+        
+        var isLoading: Bool { self == .firstLoading || self == .loading }
     }
     
     public let rxLoader = BehaviorRelay<Loading>( value: .none )
