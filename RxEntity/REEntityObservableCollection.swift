@@ -31,6 +31,12 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public typealias SingleFetchCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchCallback
     public typealias SingleExtraFetchCallback<Extra> = RESingleObservableCollectionExtra<Entity, Extra, CollectionExtra>.SingleFetchCallback
     
+    public typealias KeyArrayFetchBackCallback = REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.ArrayFetchBackCallback<REEntityExtraParamsEmpty, CollectionExtra>
+    public typealias KeyArrayExtraFetchBackCallback<Extra> = REKeyArrayObservableCollectionExtra<Entity, Extra, CollectionExtra>.ArrayFetchBackCallback<Extra, CollectionExtra>
+    
+    public typealias KeyArrayFetchCallback = REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.ArrayFetchCallback<REEntityExtraParamsEmpty, CollectionExtra>
+    public typealias KeyArrayExtraFetchCallback<Extra> = REKeyArrayObservableCollectionExtra<Entity, Extra, CollectionExtra>.ArrayFetchCallback<Extra, CollectionExtra>
+    
     public typealias PageFetchBackCallback = REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.PageFetchBackCallback<REEntityExtraParamsEmpty, CollectionExtra>
     public typealias PageExtraFetchBackCallback<Extra> = REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>.PageFetchBackCallback<Extra, CollectionExtra>
     
@@ -39,8 +45,8 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     public var singleFetchBackCallback: SingleFetchBackCallback? = nil
     public var singleFetchCallback: SingleFetchCallback? = nil
-    public var arrayFetchBackCallback: PageFetchBackCallback? = nil
-    public var arrayFetchCallback: PageFetchCallback? = nil
+    public var arrayFetchBackCallback: KeyArrayFetchBackCallback? = nil
+    public var arrayFetchCallback: KeyArrayFetchCallback? = nil
     
     public private(set) var collectionExtra: CollectionExtra? = nil
     private(set) var combineSources = [RECombineSource<Entity>]()
@@ -132,29 +138,50 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, combineSources: combineSources, fetch: fetch )
     }
     
-    public override func CreateArray( initial: [Entity] ) -> REArrayObservable<Entity>
+    //MARK: - Array Keys Observables
+    public func CreateKeyArrayBack( keys: [REEntityKey] = [], _ fetch: @escaping KeyArrayFetchBackCallback ) -> REKeyArrayObservable<Entity>
+    {
+        return REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public func CreateKeyArrayBackExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, _ fetch: @escaping KeyArrayExtraFetchBackCallback<Extra> ) -> REKeyArrayObservableExtra<Entity, Extra>
+    {
+        return REKeyArrayObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public func CreateKeyArray( keys: [REEntityKey] = [], _ fetch: @escaping KeyArrayFetchCallback ) -> REKeyArrayObservable<Entity>
+    {
+        return REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public func CreateKeyArrayExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, _ fetch: @escaping KeyArrayExtraFetchCallback<Extra> ) -> REKeyArrayObservableExtra<Entity, Extra>
+    {
+        return REKeyArrayObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: fetch )
+    }
+    
+    public override func CreateKeyArray( initial: [Entity] ) -> REKeyArrayObservable<Entity>
     {
         if arrayFetchCallback != nil
         {
-            return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchCallback! )
+            return REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchCallback! )
         }
         else if arrayFetchBackCallback != nil
         {
-            return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchBackCallback! )
+            return REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, combineSources: combineSources, fetch: arrayFetchBackCallback! )
         }
         
         precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
     }
     
-    public func CreateArray( keys: [REEntityKey], start: Bool = true ) -> REArrayObservable<Entity>
+    public func CreateKeyArray( keys: [REEntityKey] ) -> REArrayObservable<Entity>
     {
         if arrayFetchCallback != nil
         {
-            return CreateArray( keys: keys, start: start, arrayFetchCallback! )
+            return CreateKeyArray( keys: keys, arrayFetchCallback! )
         }
         else if arrayFetchBackCallback != nil
         {
-            return CreateArrayBack( keys: keys, start: start, arrayFetchBackCallback! )
+            return CreateKeyArrayBack( keys: keys, arrayFetchBackCallback! )
         }
         
         precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )

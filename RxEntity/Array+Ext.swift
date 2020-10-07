@@ -10,7 +10,7 @@ import Foundation
 
 extension Array where Element: REEntity
 {
-    mutating func AppendOrReplace( entities: [Element] )
+    public mutating func AppendOrReplace( entities: [Element] )
     {
         entities.forEach
         {
@@ -24,5 +24,12 @@ extension Array where Element: REEntity
                 self.append( e )
             }
         }
+    }
+    
+    public func asEntitiesMap() -> [REEntityKey: Element]
+    {
+        var map = [REEntityKey: Element]()
+        forEach { map[$0._key] = $0 }
+        return map
     }
 }

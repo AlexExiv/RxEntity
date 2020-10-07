@@ -107,8 +107,8 @@ class REEntityObservableTests: XCTestCase
         rxPublish.subscribe( onNext: { print( "Number PUBLISH \($0)" ) } ).disposed( by: dispBag )
         rxShare.subscribe( onNext: { print( "Number\($0)" ) } ).disposed( by: dispBag )
     }*/
-    
-    func test() throws
+    /*
+    func testUpdate() throws
     {
         let collection = REEntityObservableCollection<TestEntity>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let single = collection.CreateSingleBack { _ in Single.just( TestEntityBack( id: "1", value: "2" ) ) }
@@ -225,7 +225,7 @@ class REEntityObservableTests: XCTestCase
         
         XCTAssertEqual( f5.id, "1" )
         XCTAssertEqual( f5.value, "3" )
-    }
+    }*/
     
     func testExtra()
     {
@@ -450,7 +450,7 @@ class REEntityObservableTests: XCTestCase
             pp in Single.just( pp.keys.map { TestEntityBack( id: $0.stringKey, value: pp.collectionExtra!.test + $0.stringKey ) } )
         }
         
-        let array = collection.CreateArray( initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
+        let array = collection.CreateKeyArray( initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
         
         Thread.sleep( forTimeInterval: 0.5 )
         
@@ -486,6 +486,48 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[0].value, "test21" )
         XCTAssertEqual( s[1].id, "2" )
         XCTAssertEqual( s[1].value, "test22" )
+        
+        array.Append( key: "3" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "test21" )
+        XCTAssertEqual( s[1].id, "2" )
+        XCTAssertEqual( s[1].value, "test22" )
+        XCTAssertEqual( s[2].id, "3" )
+        XCTAssertEqual( s[2].value, "test23" )
+        
+        array.Append( entity: TestEntity( id: "4", value: "Appended" ) )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "test21" )
+        XCTAssertEqual( s[1].id, "2" )
+        XCTAssertEqual( s[1].value, "test22" )
+        XCTAssertEqual( s[2].id, "3" )
+        XCTAssertEqual( s[2].value, "test23" )
+        XCTAssertEqual( s[3].id, "4" )
+        XCTAssertEqual( s[3].value, "Appended" )
+        
+        array.Set( keys: ["3", "4"] )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! array
+            .toBlocking()
+            .first()!
+
+        XCTAssertEqual( s[0].id, "3" )
+        XCTAssertEqual( s[0].value, "test23" )
+        XCTAssertEqual( s[1].id, "4" )
+        XCTAssertEqual( s[1].value, "test24" )
     }
     
     func testMergeWithSingle()
@@ -602,7 +644,7 @@ class REEntityObservableTests: XCTestCase
             Single.just( [] )
         }
 
-        let array = collection.CreateArray( initial: [TestEntity( id: "1", value: "2" ), TestEntity( id: "2", value: "3" ) ] )
+        let array = collection.CreateKeyArray( initial: [TestEntity( id: "1", value: "2" ), TestEntity( id: "2", value: "3" ) ] )
         
         var s = try! array
             .toBlocking()

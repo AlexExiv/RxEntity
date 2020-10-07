@@ -15,7 +15,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public typealias Element = [Entity]
     
     let rxPublish = BehaviorSubject<Element>( value: [] )
-    let rxObservable: Observable<Element>
     let queue: OperationQueueScheduler
 
     public private(set) var page = -1
@@ -23,7 +22,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var extra: Extra? = nil
 
     public private(set) var keys: [REEntityKey] = []
-    
     public private(set) var entities: [Entity] = []
    
     init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
@@ -32,7 +30,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         self.keys = keys
         self.extra = extra
         self.perPage = perPage
-        rxObservable = rxPublish.share( replay: 1, scope: .forever )
         
         super.init( holder: holder, combineSources: combineSources )
     }
