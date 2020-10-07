@@ -173,7 +173,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
     }
     
-    public func CreateKeyArray( keys: [REEntityKey] ) -> REArrayObservable<Entity>
+    public func CreateKeyArray( keys: [REEntityKey] ) -> REKeyArrayObservable<Entity>
     {
         if arrayFetchCallback != nil
         {
