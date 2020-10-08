@@ -574,8 +574,15 @@ class REEntityObservableTests: XCTestCase
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
-        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs ) {
+            $0.Modified( value: "\($0.id)\($1)" )
+            
+        }
+        collection.combineLatest( rxObs1 )
+        {
+            $0.Modified( value: "\($0.id)\($1)" )
+            
+        }
         let pager = collection.CreatePaginatorBack( perPage: 2 ) {
             if ($0.page == 0)
             {
@@ -632,7 +639,6 @@ class REEntityObservableTests: XCTestCase
     
     func testArrayInitialMerge()
     {
-        var i = 0
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
 
         let rxObs = BehaviorSubject( value: "2" )
@@ -645,6 +651,7 @@ class REEntityObservableTests: XCTestCase
         }
 
         let array = collection.CreateKeyArray( initial: [TestEntity( id: "1", value: "2" ), TestEntity( id: "2", value: "3" ) ] )
+        Thread.sleep( forTimeInterval: 0.5 )
         
         var s = try! array
             .toBlocking()

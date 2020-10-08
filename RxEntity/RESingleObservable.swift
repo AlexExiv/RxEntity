@@ -32,13 +32,13 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         return try! rxPublish.value()
     }
     
-    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
         self.key = key
         self.extra = extra
         
-        super.init( holder: holder, combineSources: combineSources )
+        super.init( holder: holder )
     }
     
     override func Update( source: String, entity: Entity )

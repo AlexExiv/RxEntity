@@ -15,9 +15,9 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
 {
     public typealias Element = [Entity]
 
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: OperationQueueScheduler )
     {
-        super.init( holder: holder, keys: keys, extra: extra, perPage: 0, observeOn: observeOn, combineSources: combineSources )
+        super.init( holder: holder, keys: keys, extra: extra, perPage: 0, observeOn: observeOn )
     }
     
     public func Append( key: REEntityKey )

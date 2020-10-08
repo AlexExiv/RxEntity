@@ -33,12 +33,10 @@ public class REEntityObservable<Entity: REEntity>
     let lock = NSRecursiveLock()
     
     public private(set) weak var collection: REEntityCollection<Entity>? = nil
-    let combineSources: [RECombineSource<Entity>]
     
-    init( holder: REEntityCollection<Entity>, combineSources: [RECombineSource<Entity>] )
+    init( holder: REEntityCollection<Entity> )
     {
         self.collection = holder
-        self.combineSources = combineSources
         holder.Add( object: self )
     }
     

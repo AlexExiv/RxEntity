@@ -19,6 +19,7 @@ public class REEntityCollection<Entity: REEntity>
     var items = [REWeakObjectObservable<Entity>]()
     var sharedEntities = [REEntityKey: Entity]()
     
+    let lock = NSRecursiveLock()
     let queue: OperationQueueScheduler
     let dispBag = DisposeBag()
     
@@ -38,6 +39,16 @@ public class REEntityCollection<Entity: REEntity>
         items.removeAll( where: { object.uuid == $0.ref?.uuid } )
     }
     
+    func RxRequestForCombine( source: String = "", entity: Entity ) -> Single<Entity>
+    {
+        preconditionFailure( "" )
+    }
+    
+    func RxRequestForCombine( source: String = "", entities: [Entity] ) -> Single<[Entity]>
+    {
+        preconditionFailure( "" )
+    }
+    
     public func RxUpdate( source: String = "", entity: Entity ) -> Single<Entity>
     {
         return Single.create
@@ -55,6 +66,7 @@ public class REEntityCollection<Entity: REEntity>
     
     public func RxUpdate( source: String = "", entities: [Entity] ) -> Single<[Entity]>
     {
+        Update( source: source, entities: entities )
         return Single.create
             {
                 [weak self] in
@@ -73,7 +85,7 @@ public class REEntityCollection<Entity: REEntity>
         assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
         
         sharedEntities[entity._key] = entity
-        //items.forEach { $0.ref?.Update( source: source, entity: entity ) }
+        items.forEach { $0.ref?.Update( source: source, entity: entity ) }
     }
     
     open func Update( source: String = "", entities: [Entity] )
@@ -81,7 +93,7 @@ public class REEntityCollection<Entity: REEntity>
         assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
         
         entities.forEach { sharedEntities[$0._key] = $0 }
-        //items.forEach { $0.ref?.Update( source: source, entities: self.sharedEntities ) }
+        items.forEach { $0.ref?.Update( source: source, entities: entities.asEntitiesMap() ) }
     }
     
     func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>

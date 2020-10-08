@@ -24,14 +24,14 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var keys: [REEntityKey] = []
     public private(set) var entities: [Entity] = []
    
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>] )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
         self.keys = keys
         self.extra = extra
         self.perPage = perPage
         
-        super.init( holder: holder, combineSources: combineSources )
+        super.init( holder: holder )
     }
     
     override func Update( source: String, entity: Entity )
