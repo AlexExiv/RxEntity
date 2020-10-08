@@ -209,12 +209,12 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Combine Latest
-    func combineLatest<T>( _ source: Observable<T>, _ merge: @escaping (Entity, T) -> Entity )
+    public func combineLatest<T>( _ source: Observable<T>, _ merge: @escaping (Entity, T) -> Entity )
     {
         combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.asObservable()], combine: { (e, a) in merge( e, a[0] as! T ) } ) )
     }
 
-    func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> Entity )
+    public func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> Entity )
     {
         let sources = [source0.map { $0 as Any }.asObservable(),
                        source1.map { $0 as Any }.asObservable()]
@@ -222,7 +222,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1 ) } ) )
     }
 
-    func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> Entity )
+    public func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> Entity )
     {
         let sources = [source0.map { $0 as Any }.asObservable(),
                        source1.map { $0 as Any }.asObservable(),
@@ -231,7 +231,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2 ) } ) )
     }
 
-    func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> Entity)
+    public func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> Entity)
     {
         let sources = [source0.map { $0 as Any }.asObservable(),
                        source1.map { $0 as Any }.asObservable(),
@@ -241,7 +241,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3 ) } ) )
     }
 
-    func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> Entity)
+    public func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> Entity)
     {
         let sources = [source0.map { $0 as Any }.asObservable(),
                        source1.map { $0 as Any }.asObservable(),
@@ -252,7 +252,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         combineSources.append( RECombineSource<Entity>( sources: sources, combine: { (e, a) in merge( e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4 ) } ) )
     }
 
-    func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> Entity)
+    public func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> Entity)
     {
         let sources = [source0.map { $0 as Any }.asObservable(),
                        source1.map { $0 as Any }.asObservable(),
