@@ -15,7 +15,7 @@ public struct REEntityCollectionExtraParamsEmpty
     
 }
 
-typealias CombineMethod<E> = (E, Array<Any>) -> E
+typealias CombineMethod<E> = (E, Array<Any>) -> (E, Bool)
 
 struct RECombineSource<E>
 {
@@ -216,13 +216,13 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Combine Latest
-    public func combineLatest<T>( _ source: Observable<T>, _ merge: @escaping (Entity, T) -> Entity )
+    public func combineLatest<T>( _ source: Observable<T>, _ merge: @escaping (Entity, T) -> (Entity, Bool) )
     {
         combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.asObservable().observeOn( queue )], combine: { (e, a) in merge( e, a[0] as! T ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> Entity )
+    public func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> (Entity, Bool) )
     {
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue )]
@@ -231,7 +231,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> Entity )
+    public func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> (Entity, Bool) )
     {
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -241,7 +241,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> Entity)
+    public func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> (Entity, Bool))
     {
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -252,7 +252,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> Entity)
+    public func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> (Entity, Bool))
     {
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -264,7 +264,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> Entity)
+    public func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> (Entity, Bool))
     {
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -287,17 +287,17 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             switch ms.sources.count
             {
             case 1:
-                obs = Observable.combineLatest( obs, ms.sources[0], resultSelector: { ms.combine( $0, [$1] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], resultSelector: { ms.combine( $0, [$1] ).0 } )
             case 2:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], resultSelector: { ms.combine( $0, [$1, $2] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], resultSelector: { ms.combine( $0, [$1, $2] ).0 } )
             case 3:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], resultSelector: { ms.combine( $0, [$1, $2, $3] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], resultSelector: { ms.combine( $0, [$1, $2, $3] ).0 } )
             case 4:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], resultSelector: { ms.combine( $0, [$1, $2, $3, $4] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], resultSelector: { ms.combine( $0, [$1, $2, $3, $4] ).0 } )
             case 5:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5] ).0 } )
             case 6:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[6], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5, $6] ) } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[6], resultSelector: { ms.combine( $0, [$1, $2, $3, $4, $5, $6] ).0 } )
             default:
                 assert( false, "Unsupported number of the sources" )
             }
@@ -319,17 +319,17 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             switch ms.sources.count
             {
             case 1:
-                obs = Observable.combineLatest( obs, ms.sources[0], resultSelector: { (es, t0) in es.map { ms.combine( $0, [t0] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], resultSelector: { (es, t0) in es.map { ms.combine( $0, [t0] ).0 } } )
             case 2:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], resultSelector: { (es, t0, t1) in es.map { ms.combine( $0, [t0, t1] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], resultSelector: { (es, t0, t1) in es.map { ms.combine( $0, [t0, t1] ).0 } } )
             case 3:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], resultSelector: { (es, t0, t1, t2) in es.map { ms.combine( $0, [t0, t1, t2] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], resultSelector: { (es, t0, t1, t2) in es.map { ms.combine( $0, [t0, t1, t2] ).0 } } )
             case 4:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], resultSelector: { (es, t0, t1, t2, t3) in es.map { ms.combine( $0, [t0, t1, t2, t3] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], resultSelector: { (es, t0, t1, t2, t3) in es.map { ms.combine( $0, [t0, t1, t2, t3] ).0 } } )
             case 5:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { (es, t0, t1, t2, t3, t4) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], resultSelector: { (es, t0, t1, t2, t3, t4) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4] ).0 } } )
             case 6:
-                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[5], resultSelector: { (es, t0, t1, t2, t3, t4, t5) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4, t5] ) } } )
+                obs = Observable.combineLatest( obs, ms.sources[0], ms.sources[1], ms.sources[2], ms.sources[3], ms.sources[4], ms.sources[5], resultSelector: { (es, t0, t1, t2, t3, t4, t5) in es.map { ms.combine( $0, [t0, t1, t2, t3, t4, t5] ).0 } } )
             default:
                 assert( false, "Unsupported number of the sources" )
             }
@@ -379,9 +379,18 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         var toUpdate = [REEntityKey: Entity]()
         sharedEntities.keys.forEach {
             var e = sharedEntities[$0]!
-            e = combines.reduce( e ) { $1.combine( $0, $1.values ) }
-            sharedEntities[$0] = e
-            toUpdate[$0] = e
+            var updated = false
+            e = combines.reduce( e ) {
+                let r = $1.combine( $0, $1.values )
+                updated = updated || r.1
+                return r.0
+            }
+            
+            if updated
+            {
+                sharedEntities[$0] = e
+                toUpdate[$0] = e
+            }
         }
         
         items.forEach { $0.ref?.Update( source: "", entities: toUpdate ) }

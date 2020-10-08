@@ -535,9 +535,9 @@ class REEntityObservableTests: XCTestCase
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs, rxObs1 ) { $0.Modified( value: $1 + $2 ) }
-        collection.combineLatest( rxObs ) { $0.Modified( value: $1 ) }
-        collection.combineLatest( rxObs1 ) { $0.Modified( value: $1 ) }
+        collection.combineLatest( rxObs, rxObs1 ) { ($0.Modified( value: $1 + $2 ), true) }
+        collection.combineLatest( rxObs ) { ($0.Modified( value: $1 ), true) }
+        collection.combineLatest( rxObs1 ) { ($0.Modified( value: $1 ), true) }
         let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
 
         var s = try! single0
@@ -569,20 +569,51 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s.value, "5" )
     }
     
+    func testMergeWithSingleDecline()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let rxObs = BehaviorSubject( value: "2" )
+        collection.combineLatest( rxObs ) { ($0.Modified( value: $1 ), $1 != "4" ) }
+        
+        let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
+        Thread.sleep( forTimeInterval: 0.5 )
+
+        var s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "2" )
+
+        rxObs.onNext( "4" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "2" )
+
+        rxObs.onNext( "5" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single0
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.id, "1" )
+        XCTAssertEqual( s.value, "5" )
+    }
+    
     func testMergeWithPaginator()
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs ) {
-            $0.Modified( value: "\($0.id)\($1)" )
-            
-        }
-        collection.combineLatest( rxObs1 )
-        {
-            $0.Modified( value: "\($0.id)\($1)" )
-            
-        }
+        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
+        collection.combineLatest( rxObs1 ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
+        
         let pager = collection.CreatePaginatorBack( perPage: 2 ) {
             if ($0.page == 0)
             {
@@ -637,14 +668,73 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[2].value, "35" )
     }
     
+    func testMergeWithPaginatorDecline()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
+        let rxObs = BehaviorSubject( value: "2" )
+        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), $1 != "4" ) }
+        
+        let pager = collection.CreatePaginatorBack( perPage: 2 ) {
+            if ($0.page == 0)
+            {
+                return Single.just([TestEntityBack(id: "1", value: "1"), TestEntityBack(id: "2", value: "1")])
+            }
+            else
+            {
+                return Single.just([TestEntityBack(id: "3", value: "1"), TestEntityBack(id: "4", value: "1")])
+            }
+        }
+        
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        var s =  try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s.count, 2 )
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "12" )
+
+        rxObs.onNext( "4" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "12" )
+
+        rxObs.onNext( "5" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( s[0].id, "1" )
+        XCTAssertEqual( s[0].value, "15" )
+
+        pager.Next()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! pager
+            .toBlocking()
+            .first()!
+
+        XCTAssertEqual( s.count, 4 )
+        XCTAssertEqual( s[2].id, "3" )
+        XCTAssertEqual( s[2].value, "35" )
+    }
+    
     func testArrayInitialMerge()
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
 
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
-        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
+        collection.combineLatest( rxObs1 ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
 
         collection.arrayFetchCallback = { pp in
             Single.just( [] )
