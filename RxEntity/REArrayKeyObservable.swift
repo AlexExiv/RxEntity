@@ -29,6 +29,19 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         _keys.append( key )
         Set( keys: _keys )
     }
+    
+    public func Remove( key: REEntityKey )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        if let i = keys.firstIndex( where: { $0 == key } )
+        {
+            var _keys = keys
+            _keys.remove( at: i )
+            Set( keys: _keys )
+        }
+    }
 }
 
 public typealias REKeyArrayObservable<Entity: REEntity> = REKeyArrayObservableExtra<Entity, REEntityExtraParamsEmpty>

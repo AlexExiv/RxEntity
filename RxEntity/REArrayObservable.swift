@@ -134,8 +134,20 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         lock.lock()
         defer { lock.unlock() }
         
-        entities.append( entity )
-        keys.append( entity._key )
+        entities.AppendNotExist( entity: entity )
+        keys.AppendNotExist( key: entity._key )
+        
+        rxPublish.onNext( entities )
+    }
+    
+    public func Remove( entity: Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        entities.Remove( entity: entity )
+        keys.Remove( key: entity._key )
+        
         rxPublish.onNext( entities )
     }
     
