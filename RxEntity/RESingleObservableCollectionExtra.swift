@@ -129,7 +129,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
     convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, combineSources: [RECombineSource<Entity>], fetch: @escaping SingleFetchCallback )
     {
         self.init( holder: holder, key: initial._key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, combineSources: combineSources, fetch: fetch )
-        rxPublish.onNext( initial )
+        rxMiddleware.accept( initial )
         started = !refresh
     }
     
