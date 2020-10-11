@@ -102,6 +102,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         
         self.extra = extra ?? self.extra
         page = -1
+        Set( entities: [] )
         rxPublish.onNext( [] )
     }
 
