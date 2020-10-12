@@ -99,42 +99,42 @@ public class REEntityCollection<Entity: REEntity>
     }
     
     //MARK: - Commit
-    func Commit( entity: Entity, operation: REUpdateOperation = .update )
+    public func Commit( entity: Entity, operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( key: REEntityKey, operation: REUpdateOperation = .update )
+    public func Commit( key: REEntityKey, operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( key: REEntityKey, changes: (Entity) -> Entity )
+    public func Commit( key: REEntityKey, changes: (Entity) -> Entity )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( entities: [Entity], operation: REUpdateOperation = .update )
+    public func Commit( entities: [Entity], operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( entities: [Entity], operations: [REUpdateOperation] )
+    public func Commit( entities: [Entity], operations: [REUpdateOperation] )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
+    public func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
+    public func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
     {
         fatalError( "This method must be overridden" )
     }
     
-    func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
+    public func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
     {
         fatalError( "This method must be overridden" )
     }

@@ -397,7 +397,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Commit
-    override func Commit( entity: Entity, operation: REUpdateOperation = .update )
+    public override func Commit( entity: Entity, operation: REUpdateOperation = .update )
     {
         lock.lock()
         defer { lock.unlock() }
@@ -432,7 +432,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         }
     }
     */
-    override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
+    public override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
@@ -445,7 +445,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         }
     }
     
-    override func Commit( entities: [Entity], operation: REUpdateOperation = .update )
+    public override func Commit( entities: [Entity], operation: REUpdateOperation = .update )
     {
         lock.lock()
         defer { lock.unlock() }
@@ -464,7 +464,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
     }
     
-    override func Commit( entities: [Entity], operations: [REUpdateOperation] )
+    public override func Commit( entities: [Entity], operations: [REUpdateOperation] )
     {
         lock.lock()
         defer { lock.unlock() }
@@ -485,17 +485,17 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
     }
     
-    override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
+    public override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
     }
     
-    override func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
+    public override func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
     {
         fatalError( "This method must be overridden" )
     }
     
-    override func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
+    public override func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
