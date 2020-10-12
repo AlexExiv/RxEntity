@@ -125,24 +125,24 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Array Observables
-    public func CreateArrayBack( keys: [REEntityKey] = [], start: Bool = true, _ fetch: @escaping PageFetchBackCallback ) -> REArrayObservable<Entity>
+    public func CreateArrayBack( start: Bool = true, _ fetch: @escaping PageFetchBackCallback ) -> REArrayObservable<Entity>
     {
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateArrayBackExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchBackCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
+    public func CreateArrayBackExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchBackCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
     {
-        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateArray( keys: [REEntityKey] = [], start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REArrayObservable<Entity>
+    public func CreateArray( start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REArrayObservable<Entity>
     {
-        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, keys: keys, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
-    public func CreateArrayExtra<Extra>( keys: [REEntityKey] = [], extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
+    public func CreateArrayExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
     {
-        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, keys: keys, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+        return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
     }
     
     //MARK: - Array Keys Observables
@@ -396,6 +396,125 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.Update( source: "", entities: toUpdate ) }
     }
     
+    //MARK: - Commit
+    override func Commit( entity: Entity, operation: REUpdateOperation = .update )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        sharedEntities[entity._key] = entity
+        items.forEach { $0.ref?.Update( entity: entity, operation: operation ) }
+    }
+    /*
+    override func Commit( key: REEntityKey, operation: REUpdateOperation )
+    {
+        weak var _self = self
+        if singleFetchCallback != nil
+        {
+            singleFetchCallback!( RESingleParams<Entity, REEntityExtraParamsEmpty, CollectionExtra>( key: key, lastEntity: nil ) )
+                .observeOn( queue )
+                .subscribe( onSuccess:
+                {
+                    if let e = $0
+                    {
+                        _self?.Commit( entity: e, operation: operation )
+                    }
+                }, onError: { _ in } )
+                .disposed( by: dispBag )
+        }
+        else if singleFetchBackCallback != nil
+        {
+            
+        }
+        else
+        {
+            precondition( false, "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+        }
+    }
+    */
+    override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        if let e = sharedEntities[key]
+        {
+            let new = changes( e )
+            sharedEntities[key] = new
+            items.forEach { $0.ref?.Update( entity: new, operation: .update ) }
+        }
+    }
+    
+    override func Commit( entities: [Entity], operation: REUpdateOperation = .update )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        var forUpdate = [REEntityKey: Entity]()
+        entities.forEach
+        {
+            if let _ = sharedEntities[$0._key]
+            {
+                forUpdate[$0._key] = $0
+            }
+            
+            sharedEntities[$0._key] = $0
+        }
+        
+        items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
+    }
+    
+    override func Commit( entities: [Entity], operations: [REUpdateOperation] )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        var forUpdate = [REEntityKey: Entity]()
+        var operationUpdate = [REEntityKey: REUpdateOperation]()
+        entities.enumerated().forEach
+        {
+            if let _ = sharedEntities[$1._key]
+            {
+                forUpdate[$1._key] = $1
+            }
+            
+            operationUpdate[$1._key] = operations[$0]
+            sharedEntities[$1._key] = $1
+        }
+        
+        items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
+    }
+    
+    override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
+    override func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
+    override func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        var forUpdate = [REEntityKey: Entity]()
+        keys.forEach
+        {
+            if let e = sharedEntities[$0]
+            {
+                let new = changes( e )
+                sharedEntities[$0] = new
+                forUpdate[$0] = new
+            }
+        }
+        
+        items.forEach { $0.ref?.Update( entities: forUpdate, operation: .update ) }
+    }
+    
+
     //MARK: - Updates
     public func RxRequestForUpdate( source: String = "", key: REEntityKey, update: @escaping (Entity) -> Entity ) -> Single<Entity?>
     {

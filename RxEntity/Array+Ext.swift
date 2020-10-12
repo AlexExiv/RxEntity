@@ -52,7 +52,12 @@ extension Array where Element: REEntity
     
     public mutating func Remove( entity: Element )
     {
-        if let i = self.firstIndex( where: { entity._key == $0._key } )
+        Remove( key: entity._key )
+    }
+    
+    public mutating func Remove( key: REEntityKey )
+    {
+        if let i = self.firstIndex( where: { key == $0._key } )
         {
             remove( at: i )
         }

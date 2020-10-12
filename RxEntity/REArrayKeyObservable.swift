@@ -14,10 +14,64 @@ import RxCocoa
 public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservableExtra<Entity, Extra>
 {
     public typealias Element = [Entity]
+    public var keys: [REEntityKey]
+    {
+        set
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            _keys = newValue
+        }
+        get { _keys }
+        
+    }
+    var _keys: [REEntityKey] = []
 
     init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: OperationQueueScheduler )
     {
-        super.init( holder: holder, keys: keys, extra: extra, perPage: 0, observeOn: observeOn )
+        self._keys = keys
+        super.init( holder: holder, extra: extra, perPage: 0, observeOn: observeOn )
+    }
+    
+    override func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        let _entities = self.entities
+        _entities.forEach {
+            if let e = entities[$0._key]
+            {
+                self.Apply( entity: e, operation: operation )
+            }
+        }
+    }
+    
+    override func Update( entities: [REEntityKey: Entity], operations: [REEntityKey: REUpdateOperation] )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        let _entities = self.entities
+        _entities.forEach {
+            if let e = entities[$0._key], let o = operations[$0._key]
+            {
+                self.Apply( entity: e, operation: o )
+            }
+        }
+    }
+    
+    private func Apply( entity: Entity, operation: REUpdateOperation )
+    {
+        switch operation
+        {
+        case .none, .insert, .update:
+            self.Set( entity: entity )
+            
+        case .delete:
+            self.Remove( key: entity._key )
+        }
     }
     
     public func Append( key: REEntityKey )
@@ -25,22 +79,34 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         lock.lock()
         defer { lock.unlock() }
         
-        var _keys = keys
-        _keys.append( key )
-        Set( keys: _keys )
+        _keys.AppendNotExist( key: key )
     }
     
-    public func Remove( key: REEntityKey )
+    public override func Append( entity: Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        if let i = keys.firstIndex( where: { $0 == key } )
-        {
-            var _keys = keys
-            _keys.remove( at: i )
-            Set( keys: _keys )
-        }
+        super.Append( entity: entity )
+        _keys.AppendNotExist( key: entity._key )
+    }
+    
+    public override func Remove( entity: Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        super.Remove( entity: entity )
+        _keys.Remove( key: entity._key )
+    }
+
+    public override func Remove( key: REEntityKey )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        super.Remove( key: key )
+        _keys.Remove( key: key )
     }
 }
 
@@ -60,6 +126,6 @@ extension ObservableType where Element == [REEntityKey]
     public func bind<Entity: REEntity, Extra>( keys: REKeyArrayObservableExtra<Entity, Extra> ) -> Disposable
     {
         return observeOn( keys.queue )
-            .subscribe( onNext: { keys.Set( keys: $0 ) } )
+            .subscribe( onNext: { keys.keys = $0 } )
     }
 }

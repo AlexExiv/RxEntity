@@ -61,6 +61,40 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         }
     }
     
+    override func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
+    {
+        if let k = entity?._key, let e = entities[k]
+        {
+            switch operation
+            {
+            case .none, .insert, .update:
+                rxPublish.onNext( e )
+                rxState.accept( .ready )
+                
+            case .delete:
+                rxPublish.onNext( nil )
+                rxState.accept( .notFound )
+            }
+        }
+    }
+    
+    override func Update( entities: [REEntityKey: Entity], operations: [REEntityKey: REUpdateOperation] )
+    {
+        if let k = entity?._key, let e = entities[k], let o = operations[k]
+        {
+            switch o
+            {
+            case .none, .insert, .update:
+                rxPublish.onNext( e )
+                rxState.accept( .ready )
+                
+            case .delete:
+                rxPublish.onNext( nil )
+                rxState.accept( .notFound )
+            }
+        }
+    }
+    
     func Set( key: REEntityKey )
     {
         self.key = key

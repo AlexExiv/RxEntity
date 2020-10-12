@@ -10,10 +10,30 @@ import Foundation
 import RxSwift
 import RxRelay
 
+public enum REUpdateOperation
+{
+    case none, insert, update, delete
+}
+
 public struct RERepositoryUpdated
 {
     let key: REEntityKey
-    let entity: REEntity?
+    let entity: REBackEntityProtocol?
+    let operation: REUpdateOperation
+    let needSync: Bool
+    
+    init( key: REEntityKey, entity: REBackEntityProtocol? = nil, operation: REUpdateOperation = .none, needSync: Bool = false )
+    {
+        self.key = key
+        self.entity = entity
+        self.operation = operation
+        self.needSync = needSync
+    }
+    
+    init( entity: REBackEntityProtocol, operation: REUpdateOperation = .none, needSync: Bool = false )
+    {
+        self.init( key: entity._key, entity: entity, operation: operation, needSync: needSync )
+    }
 }
 
 public protocol RERepositoryProtocol

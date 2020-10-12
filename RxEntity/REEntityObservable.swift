@@ -56,6 +56,21 @@ public class REEntityObservable<Entity: REEntity>
         
     }
     
+    func Update( entity: Entity, operation: REUpdateOperation )
+    {
+        Update( entities: [entity._key: entity], operation: operation )
+    }
+
+    func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
+    func Update( entities: [REEntityKey: Entity], operations: [REEntityKey: REUpdateOperation] )
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
     func RefreshData( resetCache: Bool, data: Any? )
     {
         

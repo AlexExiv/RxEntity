@@ -38,6 +38,22 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
     public typealias ArrayFetchCallback<Extra, CollectionExtra> = (REKeyParams<Extra, CollectionExtra>) -> Single<[Entity]>
     public typealias ArrayFetchBackCallback<Extra, CollectionExtra> = (REKeyParams<Extra, CollectionExtra>) -> Single<[REBackEntityProtocol]>
     
+    public override var _keys: [REEntityKey]
+    {
+        set
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            super._keys = newValue
+            rxKeys.accept( REKeyParams( keys: keys, extra: extra, collectionExtra: collectionExtra ) )
+        }
+        get
+        {
+            super._keys
+        }
+    }
+    
     let rxKeys = PublishRelay<REKeyParams<Extra, CollectionExtra>>()
 
     public private(set) var collectionExtra: CollectionExtra? = nil
@@ -95,16 +111,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
     {
         self.init( holder: holder, initial: initial, collectionExtra: collectionExtra, observeOn: observeOn, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
-    
-    override func Set( keys: [REEntityKey] )
-    {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        super.Set( keys: keys )
-        rxKeys.accept( REKeyParams( keys: keys, extra: extra, collectionExtra: collectionExtra ) )
-    }
-    
+
     public override func Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
         CollectionRefresh( resetCache: resetCache, extra: extra )
@@ -156,7 +163,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
             return fetch( params )
         }
         
-        let exist = params.keys.compactMap { collection?.sharedEntities[$0] }
+        let exist = params.keys.compactMap { k in collection?.sharedEntities[k] ?? entities.first( where: { k == $0._key } ) }
         if exist.count != keys.count
         {
             let _params = REKeyParams( refreshing: params.refreshing, resetCache: params.resetCache, first: params.first, keys: params.keys.filter { collection?.sharedEntities[$0] == nil }, extra: extra, collectionExtra: collectionExtra )

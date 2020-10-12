@@ -21,19 +21,24 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var perPage = 999999
     public private(set) var extra: Extra? = nil
 
-    public private(set) var keys: [REEntityKey] = []
     public private(set) var entities: [Entity] = []
+    /*{
+        didSet
+        {
+            rxPublish.onNext( entities )
+        }
+    }*/
    
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
-        self.keys = keys
         self.extra = extra
         self.perPage = perPage
         
         super.init( holder: holder )
     }
     
+    //MARK: - Update
     override func Update( source: String, entity: Entity )
     {
         assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
@@ -74,6 +79,83 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }
     
+    override func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if operation == .insert
+        {
+            Refresh( extra: extra )
+        }
+        else
+        {
+            let _entities = self.entities
+            _entities.forEach
+            {
+                if let e = entities[$0._key]
+                {
+                    switch operation
+                    {  
+                    case .update:
+                        Set( entity: e )
+                        
+                    case .delete:
+                        Remove( key: e._key )
+                        
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
+    override func Update( entities: [REEntityKey: Entity], operations: [REEntityKey: REUpdateOperation] )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        if operations.values.contains( .insert )
+        {
+            Refresh( extra: extra )
+        }
+        else
+        {
+            let _entities = self.entities
+            _entities.forEach
+            {
+                if let e = entities[$0._key], let o = operations[$0._key]
+                {
+                    switch o
+                    {
+                    case .update:
+                        Set( entity: e )
+                        
+                    case .delete:
+                        Remove( key: e._key )
+                        
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
+    //MARK: - Set
+    func Set( entity: Entity )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        if let i = entities.firstIndex( where: { $0._key == entity._key } )
+        {
+            entities[i] = entity
+            rxPublish.onNext( entities )
+        }
+    }
+    
     func Set( entities: [Entity] )
     {
         lock.lock()
@@ -81,14 +163,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         
         self.entities = entities
         rxPublish.onNext( self.entities )
-    }
-    
-    func Set( keys: [REEntityKey] )
-    {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        self.keys = keys
     }
     
     public func Refresh( resetCache: Bool = false, extra: Extra? = nil )
@@ -136,8 +210,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         defer { lock.unlock() }
         
         entities.AppendNotExist( entity: entity )
-        keys.AppendNotExist( key: entity._key )
-        
         rxPublish.onNext( entities )
     }
     
@@ -147,8 +219,15 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         defer { lock.unlock() }
         
         entities.Remove( entity: entity )
-        keys.Remove( key: entity._key )
+        rxPublish.onNext( entities )
+    }
+    
+    public func Remove( key: REEntityKey )
+    {
+        lock.lock()
+        defer { lock.unlock() }
         
+        entities.Remove( key: key )
         rxPublish.onNext( entities )
     }
     

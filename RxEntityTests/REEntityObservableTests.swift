@@ -517,7 +517,7 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[3].id, "4" )
         XCTAssertEqual( s[3].value, "Appended" )
         
-        array.Set( keys: ["3", "4"] )
+        array.keys = ["3", "4"]
         Thread.sleep( forTimeInterval: 0.5 )
         
         s = try! array
@@ -527,7 +527,7 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s[0].id, "3" )
         XCTAssertEqual( s[0].value, "test23" )
         XCTAssertEqual( s[1].id, "4" )
-        XCTAssertEqual( s[1].value, "test24" )
+        XCTAssertEqual( s[1].value, "Appended" )
     }
     
     func testMergeWithSingle()
@@ -832,5 +832,54 @@ class REEntityObservableTests: XCTestCase
             .first()!
         
         XCTAssertEqual( s, RESingleObservableExtra.State.ready )
+    }
+    
+    
+    func testCommits()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+
+        collection.arrayFetchCallback = { pp in
+            Single.just( [] )
+        }
+        
+        collection.singleFetchCallback = { pp in
+            Single.just( nil )
+        }
+
+        let array = collection.CreateKeyArray( initial: [TestEntity( id: "1", value: "2" ), TestEntity( id: "2", value: "3" ) ] )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        let single = collection.CreateSingle( key: "1" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        collection.Commit( entity: TestEntity( id: "1", value: "12" ), operation: .update )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        var a = try! array.toBlocking().first()!
+        var s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.value, "12" )
+        XCTAssertEqual( a[0].value, "12" )
+        
+        collection.Commit( key: "1", changes: { TestEntity( id: $0.id, value: "13" ) } )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        a = try! array.toBlocking().first()!
+        s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.value, "13" )
+        XCTAssertEqual( a[0].value, "13" )
+        
+        
+        collection.Commit( keys: ["1", "2"], changes: { TestEntity( id: $0.id, value: "\($0.id)4" ) } )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        a = try! array.toBlocking().first()!
+        s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.value, "14" )
+        XCTAssertEqual( a[0].value, "14" )
+        XCTAssertEqual( a[1].value, "24" )
     }
 }
