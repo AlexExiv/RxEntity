@@ -405,6 +405,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         sharedEntities[entity._key] = entity
         items.forEach { $0.ref?.Update( entity: entity, operation: operation ) }
     }
+    
+    public func Commit( entity: REBackEntityProtocol, operation: REUpdateOperation = .update )
+    {
+        Commit( entity: Entity( entity: entity ), operation: operation )
+    }
     /*
     override func Commit( key: REEntityKey, operation: REUpdateOperation )
     {
@@ -464,6 +469,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
     }
     
+    public func Commit( entities: [REBackEntityProtocol], operation: REUpdateOperation = .update )
+    {
+        Commit( entities: entities.map { Entity( entity: $0 ) }, operation: operation )
+    }
+    
     public override func Commit( entities: [Entity], operations: [REUpdateOperation] )
     {
         lock.lock()
@@ -483,6 +493,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         }
         
         items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
+    }
+    
+    public func Commit( entities: [REBackEntityProtocol], operations: [REUpdateOperation] )
+    {
+        Commit( entities: entities.map { Entity( entity: $0 ) }, operations: operations )
     }
     
     public override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
