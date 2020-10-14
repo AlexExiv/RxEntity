@@ -16,48 +16,14 @@ import RxBlocking
 
 @testable import RxEntity
 
-protocol TestEntityBackProtocol: REBackEntityProtocol
-{
-    var id: String { get }
-    var value: String { get }
-    
-    init( entity: TestEntityBackProtocol )
-}
-
-extension TestEntityBackProtocol
-{
-    var _key: REEntityKey { return REEntityKey( id ) }
-    
-    init( entity: REBackEntityProtocol )
-    {
-        self.init( entity: entity as! TestEntityBackProtocol )
-    }
-}
-
-struct TestEntityBack: TestEntityBackProtocol
-{
-    let id: String
-    let value: String
-    
-    init( id: String, value: String )
-    {
-        self.id = id
-        self.value = value
-    }
-    
-    init( entity: TestEntityBackProtocol )
-    {
-        id = entity.id
-        value = entity.value
-    }
-}
-
 struct TestEntity: REEntity
 {
     var _key: REEntityKey { return REEntityKey( id ) }
     
     let id: String
     let value: String
+    let indirectId: String
+    let indirectValue: String
     
     init( entity: REBackEntityProtocol )
     {
@@ -68,12 +34,16 @@ struct TestEntity: REEntity
     {
         id = entity.id
         value = entity.value
+        indirectId = entity.indirectId
+        indirectValue = entity.indirectValue
     }
     
-    init( id: String, value: String )
+    init( id: String, value: String, indirectId: String = "", indirectValue: String = "" )
     {
         self.id = id
         self.value = value
+        self.indirectId = indirectId
+        self.indirectValue = indirectValue
     }
     
     func Modified( value: String ) -> TestEntity
@@ -881,5 +851,83 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s.value, "14" )
         XCTAssertEqual( a[0].value, "14" )
         XCTAssertEqual( a[1].value, "24" )
+    }
+    
+    func testRepositories()
+    {
+        let repository = TestRepository<TestEntityBack>()
+        repository.Add( entities: [TestEntityBack( id: "1", value: "test1" ), TestEntityBack( id: "2", value: "test2" )] )
+        
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        collection.repository = repository
+
+        let array = collection.CreateKeyArray( keys: ["1", "2"] )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        let single = collection.CreateSingle( key: "1" )
+        Thread.sleep( forTimeInterval: 0.5 )
+
+        var a = try! array.toBlocking().first()!
+        var s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.value, "test1" )
+        XCTAssertEqual( a[0].value, "test1" )
+        XCTAssertEqual( a[1].value, "test2" )
+        
+        repository.Update( entity: TestEntityBack( id: "1", value: "test1-new" ) )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        a = try! array.toBlocking().first()!
+        s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.value, "test1-new" )
+        XCTAssertEqual( a[0].value, "test1-new" )
+        
+        repository.Delete( key: "1" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        a = try! array.toBlocking().first()!
+        let state = try! single.rxState.toBlocking().first()!
+        
+        XCTAssertEqual( state, .deleted )
+        XCTAssertEqual( a[0].id, "2" )
+        XCTAssertEqual( a[0].value, "test2" )
+    }
+    
+    func testRepositoriesConnect()
+    {
+        
+        let repositoryIndirect = TestRepositoryIndirect()
+        repositoryIndirect.Add( entities: [IndirectEntityBack( id: "1", value: "indirect1" ), IndirectEntityBack( id: "2", value: "indirect2" )] )
+        
+        let repository = TestRepositoryDirect( second: repositoryIndirect )
+        repository.Add( entities: [TestEntityBack( id: "1", value: "test1", indirectId: "2", indirectValue: "" ), TestEntityBack( id: "2", value: "test2", indirectId: "1", indirectValue: "" )] )
+        
+        repository.Connect( repository: repositoryIndirect, fieldPath: \TestEntity.indirectId )
+        
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        collection.repository = repository
+
+        let array = collection.CreateKeyArray( keys: ["1", "2"] )
+        let single = collection.CreateSingle( key: "1" )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        var a = try! array.toBlocking().first()!
+        var s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.indirectValue, "indirect2" )
+        XCTAssertEqual( a[0].indirectValue, "indirect2" )
+        XCTAssertEqual( a[1].indirectValue, "indirect1" )
+        
+        repositoryIndirect.Update( entity: IndirectEntityBack( id: "1", value: "indirect-1" ) )
+        repositoryIndirect.Update( entity: IndirectEntityBack( id: "2", value: "indirect-2" ) )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        a = try! array.toBlocking().first()!
+        s = try! single.toBlocking().first()!
+        
+        XCTAssertEqual( s.indirectValue, "indirect-2" )
+        XCTAssertEqual( a[0].indirectValue, "indirect-2" )
+        XCTAssertEqual( a[1].indirectValue, "indirect-1" )
     }
 }

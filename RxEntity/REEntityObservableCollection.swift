@@ -43,6 +43,50 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public typealias PageFetchCallback = REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.PageFetchCallback<REEntityExtraParamsEmpty, CollectionExtra>
     public typealias PageExtraFetchCallback<Extra> = REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>.PageFetchCallback<Extra, CollectionExtra>
     
+    public var repository: REEntityRepositoryProtocol?
+    {
+        set
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            _repository = newValue
+            if let r = newValue
+            {
+                singleFetchBackCallback = { $0.key == nil ? Single.just( nil ) : r._RxGet( key: $0.key! ) }
+                arrayFetchBackCallback = { r._RxGet( keys: $0.keys ) }
+                
+                repositoryDisp?.dispose()
+                
+                repositoryDisp = r
+                    .rxEntitiesUpdated
+                    .observeOn( queue )
+                    .subscribe( onNext:
+                    {
+                        let keys = $0.filter { $0.entity == nil && $0.fieldPath == nil }
+                        let entities = $0.filter { $0.entity != nil && $0.fieldPath == nil }
+                        let indirect = $0.filter { $0.fieldPath != nil }
+                            .map { k in self.sharedEntities.values.filter { REEntityKey( $0[keyPath: k.fieldPath!] as! AnyHashable ) == k.key }.map { $0._key } }.flatMap { $0 }
+
+                        self.Commit( keys: keys.map { $0.key }, operations: keys.map { $0.operation } )
+                        self.Commit( keys: indirect, operation: .update )
+                        self.Commit( entities: entities.map { $0.entity! }, operations: entities.map { $0.operation } )
+                    } )
+                
+                dispBag.insert( repositoryDisp! )
+            }
+        }
+        get
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            return _repository
+        }
+    }
+    var _repository: REEntityRepositoryProtocol? = nil
+    var repositoryDisp: Disposable? = nil
+    
     public var singleFetchBackCallback: SingleFetchBackCallback? = nil
     public var singleFetchCallback: SingleFetchCallback? = nil
     public var arrayFetchBackCallback: KeyArrayFetchBackCallback? = nil
@@ -224,6 +268,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ merge: @escaping (Entity, T0, T1) -> (Entity, Bool) )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue )]
         
@@ -233,6 +280,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ merge: @escaping (Entity, T0, T1, T2) -> (Entity, Bool) )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
                        source2.map { $0 as Any }.asObservable().observeOn( queue )]
@@ -243,6 +293,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ merge: @escaping (Entity, T0, T1, T2, T3) -> (Entity, Bool))
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
                        source2.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -254,6 +307,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4) -> (Entity, Bool))
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
                        source2.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -266,6 +322,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ merge: @escaping (Entity, T0, T1, T2, T3, T4, T5) -> (Entity, Bool))
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let sources = [source0.map { $0 as Any }.asObservable().observeOn( queue ),
                        source1.map { $0 as Any }.asObservable().observeOn( queue ),
                        source2.map { $0 as Any }.asObservable().observeOn( queue ),
@@ -277,7 +336,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         BuildCombines()
     }
     
-    override func RxRequestForCombine( source: String = "", entity: Entity ) -> Single<Entity>
+    override func RxRequestForCombine( source: String = "", entity: Entity, updateChilds: Bool = true ) -> Single<Entity>
     {
         assert( queue.operationQueue == OperationQueue.current, "RxRequestForCombine can be called only from the specified in the constructor OperationQueue" )
         
@@ -305,11 +364,17 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         
         return obs
             .take( 1 )
-            .do( onNext: { self.Update( source: source, entity: $0 ) }, onCompleted: { print( "COMPLETE" ) } )
+            .do( onNext:
+            {
+                if updateChilds
+                {
+                    self.Update( source: source, entity: $0 )
+                }
+            } )
             .asSingle()
     }
     
-    override func RxRequestForCombine( source: String = "", entities: [Entity] ) -> Single<[Entity]>
+    override func RxRequestForCombine( source: String = "", entities: [Entity], updateChilds: Bool = true ) -> Single<[Entity]>
     {
         assert( queue.operationQueue == OperationQueue.current, "RxRequestForCombine can be called only from the specified in the constructor OperationQueue" )
         
@@ -337,7 +402,13 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         
         return obs
             .take( 1 )
-            .do( onNext: { self.Update( source: source, entities: $0 ) }, onCompleted: { print( "COMPLETE" ) } )
+            .do( onNext:
+            {
+                if updateChilds
+                {
+                    self.Update( source: source, entities: $0 )
+                }
+            } )
             .asSingle()
     }
     
@@ -399,44 +470,45 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     //MARK: - Commit
     public override func Commit( entity: Entity, operation: REUpdateOperation = .update )
     {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        sharedEntities[entity._key] = entity
-        items.forEach { $0.ref?.Update( entity: entity, operation: operation ) }
-    }
-    
-    public func Commit( entity: REBackEntityProtocol, operation: REUpdateOperation = .update )
-    {
-        Commit( entity: Entity( entity: entity ), operation: operation )
-    }
-    /*
-    override func Commit( key: REEntityKey, operation: REUpdateOperation )
-    {
-        weak var _self = self
-        if singleFetchCallback != nil
+        if operation == .delete
         {
-            singleFetchCallback!( RESingleParams<Entity, REEntityExtraParamsEmpty, CollectionExtra>( key: key, lastEntity: nil ) )
+            CommitDelete( keys: Set( arrayLiteral: entity._key ) )
+        }
+        else
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            sharedEntities[entity._key] = entity
+            items.forEach { $0.ref?.Update( entity: entity, operation: operation ) }
+        }
+    }
+
+    public override func Commit( key: REEntityKey, operation: REUpdateOperation )
+    {
+        if operation == .delete
+        {
+            CommitDelete( keys: Set( arrayLiteral: key ) )
+        }
+        else if let r = repository
+        {
+            r._RxGet( key: key )
                 .observeOn( queue )
+                .flatMap { $0 == nil ? Single.just( nil ) : self.RxRequestForCombine( source: "", entity: Entity( entity: $0! ), updateChilds: false ).map { $0 } }
                 .subscribe( onSuccess:
                 {
                     if let e = $0
                     {
-                        _self?.Commit( entity: e, operation: operation )
+                        self.Commit( entity: e, operation: operation )
                     }
                 }, onError: { _ in } )
                 .disposed( by: dispBag )
-        }
-        else if singleFetchBackCallback != nil
-        {
-            
         }
         else
         {
             precondition( false, "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
         }
     }
-    */
     public override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
     {
         lock.lock()
@@ -452,62 +524,97 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     public override func Commit( entities: [Entity], operation: REUpdateOperation = .update )
     {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        var forUpdate = [REEntityKey: Entity]()
-        entities.forEach
+        if operation == .delete
         {
-            if let _ = sharedEntities[$0._key]
+            CommitDelete( keys: Set( entities.map { $0._key } ) )
+        }
+        else
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            
+            var forUpdate = [REEntityKey: Entity]()
+            entities.forEach
             {
-                forUpdate[$0._key] = $0
+                if let _ = sharedEntities[$0._key]
+                {
+                    forUpdate[$0._key] = $0
+                }
+                
+                sharedEntities[$0._key] = $0
             }
             
-            sharedEntities[$0._key] = $0
+            items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
         }
-        
-        items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
-    }
-    
-    public func Commit( entities: [REBackEntityProtocol], operation: REUpdateOperation = .update )
-    {
-        Commit( entities: entities.map { Entity( entity: $0 ) }, operation: operation )
     }
     
     public override func Commit( entities: [Entity], operations: [REUpdateOperation] )
     {
+        let deleteKeys = Set( entities.enumerated().filter { operations[$0.0] == .delete }.map { $0.1._key } )
+        let otherEntities = entities.enumerated().filter { operations[$0.0] != .delete }.map { $0.1 }
+        let otherOpers = operations.filter { $0 != .delete }
+        
+        CommitDelete( keys: deleteKeys )
+        
         lock.lock()
         defer { lock.unlock() }
         
         var forUpdate = [REEntityKey: Entity]()
         var operationUpdate = [REEntityKey: REUpdateOperation]()
-        entities.enumerated().forEach
+        otherEntities.enumerated().forEach
         {
             if let _ = sharedEntities[$1._key]
             {
                 forUpdate[$1._key] = $1
             }
             
-            operationUpdate[$1._key] = operations[$0]
+            operationUpdate[$1._key] = otherOpers[$0]
             sharedEntities[$1._key] = $1
         }
         
         items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
     }
     
-    public func Commit( entities: [REBackEntityProtocol], operations: [REUpdateOperation] )
-    {
-        Commit( entities: entities.map { Entity( entity: $0 ) }, operations: operations )
-    }
-    
     public override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
     {
-        fatalError( "This method must be overridden" )
+        if operation == .delete
+        {
+            CommitDelete( keys: Set( keys ) )
+        }
+        else if let r = repository
+        {
+            r._RxGet( keys: keys )
+                .observeOn( queue )
+                .flatMap { self.RxRequestForCombine( source: "", entities: $0.map { Entity( entity: $0 ) }, updateChilds: false ).map { $0 } }
+                .subscribe( onSuccess: { self.Commit( entities: $0, operation: operation ) }, onError: { _ in } )
+                .disposed( by: dispBag )
+        }
+        else
+        {
+            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+        }
     }
     
     public override func Commit( keys: [REEntityKey], operations: [REUpdateOperation] )
     {
-        fatalError( "This method must be overridden" )
+        let deleteKeys = Set( keys.enumerated().filter { operations[$0.0] == .delete }.map { $0.1 } )
+        let otherKeys = keys.enumerated().filter { operations[$0.0] != .delete }.map { $0.1 }
+        let otherOpers = operations.filter { $0 != .delete }
+        
+        CommitDelete( keys: deleteKeys )
+        
+        if let r = repository
+        {
+            r._RxGet( keys: otherKeys )
+                .observeOn( queue )
+                .flatMap { self.RxRequestForCombine( source: "", entities: $0.map { Entity( entity: $0 ) }, updateChilds: false ).map { $0 } }
+                .subscribe( onSuccess: { self.Commit( entities: $0, operations: otherOpers ) }, onError: { _ in } )
+                .disposed( by: dispBag )
+        }
+        else
+        {
+            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+        }
     }
     
     public override func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
@@ -529,6 +636,13 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         items.forEach { $0.ref?.Update( entities: forUpdate, operation: .update ) }
     }
     
+    override func CommitDelete( keys: Set<REEntityKey> )
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        items.forEach { $0.ref?.Delete( keys: keys ) }
+    }
 
     //MARK: - Updates
     public func RxRequestForUpdate( source: String = "", key: REEntityKey, update: @escaping (Entity) -> Entity ) -> Single<Entity?>

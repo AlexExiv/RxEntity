@@ -36,6 +36,12 @@ class RxEntityTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         
+        let f = TestEntity( id: "1", value: "2" )
+        let kp = \TestEntity.id as AnyKeyPath
+        let p = f[keyPath: kp]
+        let s = REEntityKey( p as! AnyHashable )
+        let m = Mirror( reflecting: f )
+        
         var t = [1]
         var t0 = [1]
         print( "T - \(t)" )

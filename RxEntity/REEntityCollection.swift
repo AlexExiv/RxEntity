@@ -33,20 +33,26 @@ public class REEntityCollection<Entity: REEntity>
     
     func Add( object: REEntityObservable<Entity> )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         items.append( REWeakObjectObservable( ref: object ) )
     }
     
     func Remove( object: REEntityObservable<Entity> )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         items.removeAll( where: { object.uuid == $0.ref?.uuid } )
     }
     
-    func RxRequestForCombine( source: String = "", entity: Entity ) -> Single<Entity>
+    func RxRequestForCombine( source: String = "", entity: Entity, updateChilds: Bool = true ) -> Single<Entity>
     {
         preconditionFailure( "" )
     }
     
-    func RxRequestForCombine( source: String = "", entities: [Entity] ) -> Single<[Entity]>
+    func RxRequestForCombine( source: String = "", entities: [Entity], updateChilds: Bool = true ) -> Single<[Entity]>
     {
         preconditionFailure( "" )
     }
@@ -104,6 +110,11 @@ public class REEntityCollection<Entity: REEntity>
         fatalError( "This method must be overridden" )
     }
     
+    public func Commit( entity: REBackEntityProtocol, operation: REUpdateOperation = .update )
+    {
+        Commit( entity: Entity( entity: entity ), operation: operation )
+    }
+    
     public func Commit( key: REEntityKey, operation: REUpdateOperation = .update )
     {
         fatalError( "This method must be overridden" )
@@ -119,9 +130,19 @@ public class REEntityCollection<Entity: REEntity>
         fatalError( "This method must be overridden" )
     }
     
+    public func Commit( entities: [REBackEntityProtocol], operation: REUpdateOperation = .update )
+    {
+        Commit( entities: entities.map { Entity( entity: $0 ) }, operation: operation )
+    }
+    
     public func Commit( entities: [Entity], operations: [REUpdateOperation] )
     {
         fatalError( "This method must be overridden" )
+    }
+    
+    public func Commit( entities: [REBackEntityProtocol], operations: [REUpdateOperation] )
+    {
+        Commit( entities: entities.map { Entity( entity: $0 ) }, operations: operations )
     }
     
     public func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
@@ -135,6 +156,11 @@ public class REEntityCollection<Entity: REEntity>
     }
     
     public func Commit( keys: [REEntityKey], changes: (Entity) -> Entity )
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
+    func CommitDelete( keys: Set<REEntityKey> )
     {
         fatalError( "This method must be overridden" )
     }

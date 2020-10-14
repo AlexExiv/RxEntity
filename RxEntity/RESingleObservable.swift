@@ -16,7 +16,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     public enum State
     {
-        case initializing, ready, notFound
+        case initializing, ready, notFound, deleted
     }
     
     let queue: OperationQueueScheduler
@@ -73,7 +73,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 
             case .delete:
                 rxPublish.onNext( nil )
-                rxState.accept( .notFound )
+                rxState.accept( .deleted )
             }
         }
     }
@@ -90,8 +90,17 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 
             case .delete:
                 rxPublish.onNext( nil )
-                rxState.accept( .notFound )
+                rxState.accept( .deleted )
             }
+        }
+    }
+    
+    override func Delete( keys: Set<REEntityKey> )
+    {
+        if let k = entity?._key, keys.contains( k )
+        {
+            rxPublish.onNext( nil )
+            rxState.accept( .deleted )
         }
     }
     

@@ -15,51 +15,70 @@ public enum REUpdateOperation
     case none, insert, update, delete
 }
 
-public struct RERepositoryUpdated
+public struct REEntityUpdated
 {
     let key: REEntityKey
+    let fieldPath: AnyKeyPath?
     let entity: REBackEntityProtocol?
     let operation: REUpdateOperation
-    let needSync: Bool
     
-    init( key: REEntityKey, entity: REBackEntityProtocol? = nil, operation: REUpdateOperation = .none, needSync: Bool = false )
+    public init( key: REEntityKey, fieldPath: AnyKeyPath? = nil, entity: REBackEntityProtocol? = nil, operation: REUpdateOperation = .none )
     {
         self.key = key
         self.entity = entity
         self.operation = operation
-        self.needSync = needSync
+        self.fieldPath = fieldPath
     }
     
-    init( entity: REBackEntityProtocol, operation: REUpdateOperation = .none, needSync: Bool = false )
+    public init( entity: REBackEntityProtocol, fieldPath: AnyKeyPath? = nil, operation: REUpdateOperation = .none )
     {
-        self.init( key: entity._key, entity: entity, operation: operation, needSync: needSync )
+        self.init( key: entity._key, entity: entity, operation: operation )
     }
 }
 
-public protocol RERepositoryProtocol
+public protocol REEntityRepositoryProtocol
 {
-    var rxUpdated: PublishRelay<RERepositoryUpdated> { get }
+    var rxEntitiesUpdated: PublishRelay<[REEntityUpdated]> { get }
     
-    func RxSave( key: REBackEntityProtocol ) -> Single<REBackEntityProtocol>
-    func RxGet( key: REEntityKey ) -> Single<REBackEntityProtocol?>
-    func RxGet( keys: [REEntityKey] ) -> Single<[REBackEntityProtocol]>
+    func _RxGet( key: REEntityKey ) -> Single<REBackEntityProtocol?>
+    func _RxGet( keys: [REEntityKey] ) -> Single<[REBackEntityProtocol]>
 }
 
-public class RERepository: RERepositoryProtocol
+open class REEntityRepository<EntityBack: REBackEntityProtocol>: REEntityRepositoryProtocol
 {
-    public var rxUpdated = PublishRelay<RERepositoryUpdated>()
+    public var rxEntitiesUpdated = PublishRelay<[REEntityUpdated]>()
+    public let dispBag = DisposeBag()
     
-    public func RxSave( key: REBackEntityProtocol ) -> Single<REBackEntityProtocol>
+    public init()
     {
-        preconditionFailure( "RxSave must be implemented" )
+        
     }
     
-    public func RxGet( key: REEntityKey ) -> Single<REBackEntityProtocol?>
+    public func Connect<Entity: REEntity, V>( repository: REEntityRepositoryProtocol, fieldPath: KeyPath<Entity, V> )
+    {
+        repository
+            .rxEntitiesUpdated
+            .map { $0.map { REEntityUpdated( key: $0.key, fieldPath: fieldPath, operation: $0.operation ) } }
+            .bind( to: rxEntitiesUpdated )
+            .disposed( by: dispBag )
+    }
+    
+    public func _RxGet( key: REEntityKey ) -> Single<REBackEntityProtocol?>
+    {
+        return RxGet( key: key ).map { $0 }
+    }
+    
+    public func _RxGet( keys: [REEntityKey] ) -> Single<[REBackEntityProtocol]>
+    {
+        return RxGet( keys: keys ).map { $0 }
+    }
+    
+    open func RxGet( key: REEntityKey ) -> Single<EntityBack?>
     {
         preconditionFailure( "RxGet must be implemented" )
     }
     
-    public func RxGet( keys: [REEntityKey] ) -> Single<[REBackEntityProtocol]>
+    open func RxGet( keys: [REEntityKey] ) -> Single<[EntityBack]>
     {
         preconditionFailure( "RxGet must be implemented" )
     }

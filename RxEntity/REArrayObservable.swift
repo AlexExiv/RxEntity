@@ -143,6 +143,18 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }
     
+    override func Delete( keys: Set<REEntityKey> )
+    {
+        let _entities = self.entities
+        _entities.forEach
+        {
+            if keys.contains( $0._key )
+            {
+                Remove( key: $0._key )
+            }
+        }
+    }
+    
     //MARK: - Set
     func Set( entity: Entity )
     {

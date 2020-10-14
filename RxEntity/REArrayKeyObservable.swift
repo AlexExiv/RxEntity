@@ -43,7 +43,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         _entities.forEach {
             if let e = entities[$0._key]
             {
-                self.Apply( entity: e, operation: operation )
+                Apply( entity: e, operation: operation )
             }
         }
     }
@@ -57,7 +57,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         _entities.forEach {
             if let e = entities[$0._key], let o = operations[$0._key]
             {
-                self.Apply( entity: e, operation: o )
+                Apply( entity: e, operation: o )
             }
         }
     }
@@ -67,10 +67,10 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         switch operation
         {
         case .none, .insert, .update:
-            self.Set( entity: entity )
+            Set( entity: entity )
             
         case .delete:
-            self.Remove( key: entity._key )
+            Remove( key: entity._key )
         }
     }
     

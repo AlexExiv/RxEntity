@@ -24,6 +24,7 @@
 		FB0F774523F1830500F71B91 /* REEntityObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */; };
 		FB0F774723F1833F00F71B91 /* REEntityObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */; };
 		FB416491250F48EC0015597E /* Array+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB416490250F48EC0015597E /* Array+Ext.swift */; };
+		FB4323512536311800B7D4AD /* TestRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4323502536311800B7D4AD /* TestRepository.swift */; };
 		FB4AF619252D873B004B879D /* REArrayKeyObservable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4AF618252D873B004B879D /* REArrayKeyObservable.swift */; };
 		FB4AF61D252D95C3004B879D /* REArrayKeyObservableCollectionExtra.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4AF61C252D95C3004B879D /* REArrayKeyObservableCollectionExtra.swift */; };
 		FB4BC502250E79A5008600D8 /* RERepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4BC501250E79A5008600D8 /* RERepository.swift */; };
@@ -63,6 +64,7 @@
 		FB0F773C23F1830500F71B91 /* REEntityObservableCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableCollection.swift; sourceTree = "<group>"; };
 		FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = REEntityObservableTests.swift; sourceTree = "<group>"; };
 		FB416490250F48EC0015597E /* Array+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Ext.swift"; sourceTree = "<group>"; };
+		FB4323502536311800B7D4AD /* TestRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestRepository.swift; sourceTree = "<group>"; };
 		FB4AF618252D873B004B879D /* REArrayKeyObservable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REArrayKeyObservable.swift; sourceTree = "<group>"; };
 		FB4AF61C252D95C3004B879D /* REArrayKeyObservableCollectionExtra.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REArrayKeyObservableCollectionExtra.swift; sourceTree = "<group>"; };
 		FB4BC501250E79A5008600D8 /* RERepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RERepository.swift; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				FB0F773A23F1830500F71B91 /* REEntity.swift */,
+				FB4BC501250E79A5008600D8 /* RERepository.swift */,
 				FB0F773723F1830500F71B91 /* REEntityObservable.swift */,
 				FB0F773B23F1830500F71B91 /* RESingleObservable.swift */,
 				FB0F773623F1830500F71B91 /* RESingleObservableCollectionExtra.swift */,
@@ -147,7 +150,6 @@
 				FB0F771B23F17DDD00F71B91 /* RxEntity.h */,
 				FB0F773223F17EF700F71B91 /* RxEntity.podspec */,
 				FB0F771C23F17DDD00F71B91 /* Info.plist */,
-				FB4BC501250E79A5008600D8 /* RERepository.swift */,
 				FB416490250F48EC0015597E /* Array+Ext.swift */,
 			);
 			path = RxEntity;
@@ -158,6 +160,7 @@
 			children = (
 				FB0F774623F1833F00F71B91 /* REEntityObservableTests.swift */,
 				FB0F772623F17DDD00F71B91 /* RxEntityTests.swift */,
+				FB4323502536311800B7D4AD /* TestRepository.swift */,
 				FB0F772823F17DDD00F71B91 /* Info.plist */,
 			);
 			path = RxEntityTests;
@@ -363,6 +366,7 @@
 			files = (
 				FB0F774723F1833F00F71B91 /* REEntityObservableTests.swift in Sources */,
 				FB0F772723F17DDD00F71B91 /* RxEntityTests.swift in Sources */,
+				FB4323512536311800B7D4AD /* TestRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
