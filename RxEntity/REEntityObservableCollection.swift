@@ -72,7 +72,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                         {
                             self.Commit( key: keys[0].key, operation: keys[0].operation )
                         }
-                        else
+                        else if keys.count > 1
                         {
                             self.Commit( keys: keys.map { $0.key }, operations: keys.map { $0.operation } )
                         }
@@ -81,12 +81,15 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                         {
                             self.Commit( key: indirect[0], operation: .update )
                         }
-                        else
+                        else if keys.count > 1
                         {
                             self.Commit( keys: indirect, operation: .update )
                         }
                         
-                        self.Commit( entities: entities.map { $0.entity! }, operations: entities.map { $0.operation } )
+                        if entities.count > 0
+                        {
+                            self.Commit( entities: entities.map { $0.entity! }, operations: entities.map { $0.operation } )
+                        }
                     } )
                 
                 dispBag.insert( repositoryDisp! )
