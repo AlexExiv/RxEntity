@@ -84,7 +84,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                         {
                             self.Commit( key: indirect[0], operation: .update )
                         }
-                        else if keys.count > 1
+                        else if indirect.count > 1
                         {
                             self.Commit( keys: indirect, operation: .update )
                         }
