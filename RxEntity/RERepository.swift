@@ -15,7 +15,7 @@ public enum REUpdateOperation
     case none, insert, update, delete
 }
 
-public struct REEntityUpdated
+public struct REEntityUpdated: CustomStringConvertible
 {
     let key: REEntityKey
     let fieldPath: AnyKeyPath?
@@ -33,6 +33,11 @@ public struct REEntityUpdated
     public init( entity: REBackEntityProtocol, fieldPath: AnyKeyPath? = nil, operation: REUpdateOperation = .none )
     {
         self.init( key: entity._key, entity: entity, operation: operation )
+    }
+    
+    public var description: String
+    {
+        return "Key: \(key.base); FieldPath: \(fieldPath == nil ? "nil" : "\(fieldPath!)"); EntityExist: \(entity != nil); Operation: \(operation)"
     }
 }
 
