@@ -68,8 +68,24 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                         let indirect = $0.filter { $0.fieldPath != nil }
                             .map { k in self.sharedEntities.values.filter { REEntityKey( $0[keyPath: k.fieldPath!] as! AnyHashable ) == k.key }.map { $0._key } }.flatMap { $0 }
 
-                        self.Commit( keys: keys.map { $0.key }, operations: keys.map { $0.operation } )
-                        self.Commit( keys: indirect, operation: .update )
+                        if keys.count == 1
+                        {
+                            self.Commit( key: keys[0].key, operation: keys[0].operation )
+                        }
+                        else
+                        {
+                            self.Commit( keys: keys.map { $0.key }, operations: keys.map { $0.operation } )
+                        }
+                        
+                        if indirect.count == 1
+                        {
+                            self.Commit( key: indirect[0], operation: .update )
+                        }
+                        else
+                        {
+                            self.Commit( keys: indirect, operation: .update )
+                        }
+                        
                         self.Commit( entities: entities.map { $0.entity! }, operations: entities.map { $0.operation } )
                     } )
                 
