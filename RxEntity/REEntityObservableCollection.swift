@@ -56,6 +56,16 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                 singleFetchBackCallback = { $0.key == nil ? Single.just( nil ) : r._RxGet( key: $0.key! ) }
                 arrayFetchBackCallback = { r._RxGet( keys: $0.keys ) }
                 
+                if let ar = r as? REEntityAllRepositoryProtocol
+                {
+                    allArrayFetchCallback = { _ in ar._RxFetchAll() }
+                }
+                else
+                {
+                    allArrayFetchCallback = nil
+                }
+                
+                
                 repositoryDisp?.dispose()
                 
                 repositoryDisp = r
@@ -97,6 +107,12 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                 
                 dispBag.insert( repositoryDisp! )
             }
+            else
+            {
+                singleFetchBackCallback = nil
+                arrayFetchBackCallback = nil
+                allArrayFetchCallback = nil
+            }
         }
         get
         {
@@ -113,6 +129,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public var singleFetchCallback: SingleFetchCallback? = nil
     public var arrayFetchBackCallback: KeyArrayFetchBackCallback? = nil
     public var arrayFetchCallback: KeyArrayFetchCallback? = nil
+    var allArrayFetchCallback: PageFetchBackCallback? = nil
     
     public private(set) var collectionExtra: CollectionExtra? = nil
     private(set) var combineSources = [RECombineSource<Entity>]()
@@ -199,6 +216,16 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     public func CreateArrayBackExtra<Extra>( extra: Extra? = nil, start: Bool = true, _ fetch: @escaping PageExtraFetchBackCallback<Extra> ) -> REArrayObservableExtra<Entity, Extra>
     {
         return REPaginatorObservableCollectionExtra<Entity, Extra, CollectionExtra>( holder: self, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
+    }
+    
+    public func CreateArrayBack() -> REArrayObservable<Entity>
+    {
+        if let af = allArrayFetchCallback
+        {
+            return REPaginatorObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, collectionExtra: collectionExtra, start: true, observeOn: queue, fetch: af )
+        }
+        
+        preconditionFailure( "Repository doesn't conform to REEntityAllRepositoryProtocol" )
     }
     
     public func CreateArray( start: Bool = true, _ fetch: @escaping PageFetchCallback ) -> REArrayObservable<Entity>

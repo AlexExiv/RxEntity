@@ -49,6 +49,11 @@ public protocol REEntityRepositoryProtocol
     func _RxGet( keys: [REEntityKey] ) -> Single<[REBackEntityProtocol]>
 }
 
+public protocol REEntityAllRepositoryProtocol: REEntityRepositoryProtocol
+{
+    func _RxFetchAll() -> Single<[REBackEntityProtocol]>
+}
+
 open class REEntityRepository<EntityBack: REBackEntityProtocol>: REEntityRepositoryProtocol
 {
     public var rxEntitiesUpdated = PublishRelay<[REEntityUpdated]>()
