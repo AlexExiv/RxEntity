@@ -184,7 +184,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: queue, fetch: singleFetchBackCallback! )
         }
         
-        precondition( false, "To create Single with initial value you must specify singleFetchCallback or singleFetchBackCallback before" )
+        preconditionFailure( "To create Single with initial value you must specify singleFetchCallback or singleFetchBackCallback before" )
     }
     
     public func CreateSingle( key: REEntityKey, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
@@ -201,7 +201,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
                 return CreateSingleBack( key: key, start: start, singleFetchBackCallback! )
             }
             
-            precondition( false, "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
         }
         
         return CreateSingle( initial: e!, refresh: refresh )
@@ -270,7 +270,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             return REKeyArrayObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, initial: initial, collectionExtra: collectionExtra, observeOn: queue, fetch: arrayFetchBackCallback! )
         }
         
-        precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
+        preconditionFailure( "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
     }
     
     public func CreateKeyArray( keys: [REEntityKey] ) -> REKeyArrayObservable<Entity>
@@ -284,7 +284,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             return CreateKeyArrayBack( keys: keys, arrayFetchBackCallback! )
         }
         
-        precondition( false, "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
+        preconditionFailure( "To create Array with initial values you must specify arrayFetchCallback or arrayFetchBackCallback before" )
     }
     
     //MARK: - Paginator Observables
@@ -555,7 +555,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         }
         else
         {
-            precondition( false, "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
         }
     }
     public override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
