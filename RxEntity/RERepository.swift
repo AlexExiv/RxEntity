@@ -12,7 +12,7 @@ import RxRelay
 
 public enum REUpdateOperation
 {
-    case none, insert, update, delete
+    case none, insert, update, delete, clear
 }
 
 public struct REEntityUpdated: CustomStringConvertible

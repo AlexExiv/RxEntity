@@ -10,6 +10,11 @@ import Foundation
 import RxSwift
 import RxRelay
 
+public enum REArrayUpdatePolicy
+{
+    case update, reload
+}
+
 public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable<Entity>, ObservableType
 {
     public typealias Element = [Entity]
@@ -22,6 +27,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var extra: Extra? = nil
 
     public private(set) var entities: [Entity] = []
+    
+    public var updatePolicy: REArrayUpdatePolicy = .update
     /*{
         didSet
         {
@@ -84,19 +91,23 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         lock.lock()
         defer { lock.unlock() }
 
-        if operation == .insert
+        switch operation
         {
+        case .insert,
+             .update where updatePolicy == .reload:
             Refresh( extra: extra )
-        }
-        else
-        {
+            
+        case .clear:
+            Set( entities: [] )
+            
+        default:
             let _entities = self.entities
             _entities.forEach
             {
                 if let e = entities[$0._key]
                 {
                     switch operation
-                    {  
+                    {
                     case .update:
                         Set( entity: e )
                         
@@ -116,7 +127,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         lock.lock()
         defer { lock.unlock() }
         
-        if operations.values.contains( .insert )
+        if operations.values.contains( .insert ) || (updatePolicy == .reload && operations.values.contains( .update ))
         {
             Refresh( extra: extra )
         }

@@ -84,6 +84,13 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
             .subscribe( onNext: { _self?.Set( entities: $0 ) } )
             .disposed( by: dispBag )
         
+        rxKeys
+            .filter { $0.keys.count == 0 }
+            .observeOn( observeOn )
+            .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
+            .subscribe( onNext: { _ in _self?.Set( entities: [] ) } )
+            .disposed( by: dispBag )
+        
         if start
         {
             rxKeys.accept( REKeyParams( first: true, keys: keys, extra: extra, collectionExtra: collectionExtra ) )

@@ -71,7 +71,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 rxPublish.onNext( e )
                 rxState.accept( .ready )
                 
-            case .delete:
+            case .delete, .clear:
                 rxPublish.onNext( nil )
                 rxState.accept( .deleted )
             }
@@ -88,7 +88,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 rxPublish.onNext( e )
                 rxState.accept( .ready )
                 
-            case .delete:
+            case .delete, .clear:
                 rxPublish.onNext( nil )
                 rxState.accept( .deleted )
             }

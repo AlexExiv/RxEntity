@@ -71,6 +71,9 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
             
         case .delete:
             Remove( key: entity._key )
+            
+        case .clear:
+            Set( entities: [] )
         }
     }
     
