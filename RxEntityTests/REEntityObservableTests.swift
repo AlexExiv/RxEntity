@@ -863,9 +863,8 @@ class REEntityObservableTests: XCTestCase
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
         collection.repository = repository
 
+        let allArray = collection.CreateArrayBack { _ in Single.just( repository.items ) }
         let array = collection.CreateKeyArray( keys: ["1", "2"] )
-        Thread.sleep( forTimeInterval: 0.5 )
-        
         let single = collection.CreateSingle( key: "1" )
         Thread.sleep( forTimeInterval: 0.5 )
 
@@ -894,6 +893,11 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( state, .deleted )
         XCTAssertEqual( a[0].id, "2" )
         XCTAssertEqual( a[0].value, "test2" )
+        
+        repository.items.removeAll()
+        //repository.Add( entities: [TestEntityBack( id: "3", value: "test3" ), TestEntityBack( id: "4", value: "test4" )] )
+        allArray.Refresh()
+        
     }
     
     func testRepositoriesClear()
@@ -923,6 +927,28 @@ class REEntityObservableTests: XCTestCase
         
         let state = try! single.rxState.toBlocking().first()!
         XCTAssertEqual( state, .deleted )
+    }
+    
+    func testArrayRefresh()
+    {
+        let repository = TestRepository<TestEntityBack>()
+        repository.Add( entities: [TestEntityBack( id: "1", value: "test1" ), TestEntityBack( id: "2", value: "test2" )] )
+        
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        collection.repository = repository
+
+        let allArray = collection.CreateArrayBack { _ in Single.just( repository.items ) }
+        let array = collection.CreateKeyArray( keys: ["1", "2"] )
+        Thread.sleep( forTimeInterval: 0.5 )
+
+        repository.items.removeAll()
+        collection.Refresh()
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        var a = try! allArray.toBlocking().first()!
+        XCTAssertEqual( a.count, 0 )
+        a = try! array.toBlocking().first()!
+        XCTAssertEqual( a.count, 0 )
     }
     
     func testRepositoriesConnect()

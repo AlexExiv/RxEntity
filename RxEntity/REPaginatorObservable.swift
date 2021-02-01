@@ -31,6 +31,11 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
         lock.lock()
         defer { lock.unlock() }
         
+        if perPage == RE_ARRAY_PER_PAGE
+        {
+            return super.Append( entities: entities )
+        }
+        
         var _entities = self.entities ?? []
         _entities.AppendOrReplace( entities: entities )
         Set( page: entities.count == perPage ? page + 1 : PAGINATOR_END )
