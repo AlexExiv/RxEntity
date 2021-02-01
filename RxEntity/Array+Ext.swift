@@ -8,6 +8,29 @@
 
 import Foundation
 
+extension Array
+{
+    func asMapArray<K: Hashable>( by: KeyPath<Element, K> ) -> [K: [Element]]
+    {
+        var map = [K: [Element]]()
+        
+        forEach
+        {
+            let k = $0[keyPath: by]
+            if map[k] == nil
+            {
+                map[k] = [$0]
+            }
+            else
+            {
+                map[k]!.append( $0 )
+            }
+        }
+        
+        return map
+    }
+}
+
 extension Array where Element: REEntity
 {
     public mutating func AppendOrReplace( entity: Element )
@@ -68,6 +91,11 @@ extension Array where Element: REEntity
         var map = [REEntityKey: Element]()
         forEach { map[$0._key] = $0 }
         return map
+    }
+    
+    public func Find( key: REEntityKey ) -> REEntity?
+    {
+        return first( where: { $0._key == key } )
     }
 }
 
