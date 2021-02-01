@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 #
 
 s.name         = "RxEntity"
-s.version      = "0.4.3"
+s.version      = "0.4.4"
 s.summary      = "Swift Entity collection based on RxSwift"
 
 # This description is used to generate tags and improve search results.
@@ -79,7 +79,7 @@ s.swift_version = "5.0"
 #  Supports git, hg, bzr, svn and HTTP.
 #
 
-s.source       = { :git => "https://github.com/AlexExiv/RxEntity-Swift.git", :tag => "0.4.3" }
+s.source       = { :git => "https://github.com/AlexExiv/RxEntity-Swift.git", :tag => "0.4.4" }
 
 
 # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #

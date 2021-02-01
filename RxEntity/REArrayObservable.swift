@@ -15,6 +15,8 @@ public enum REArrayUpdatePolicy
     case update, reload
 }
 
+internal let ARRAY_PER_PAGE = 999999
+
 public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable<Entity>, ObservableType
 {
     public typealias Element = [Entity]
@@ -23,7 +25,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     let queue: OperationQueueScheduler
 
     public private(set) var page = -1
-    public private(set) var perPage = 999999
+    public private(set) var perPage = ARRAY_PER_PAGE
     public private(set) var extra: Extra? = nil
 
     public private(set) var entities: [Entity] = []
@@ -36,7 +38,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }*/
    
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = 999999, start: Bool = true, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = ARRAY_PER_PAGE, start: Bool = true, observeOn: OperationQueueScheduler )
     {
         self.queue = observeOn
         self.extra = extra
@@ -204,8 +206,11 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         
         self.extra = extra ?? self.extra
         page = -1
-        Set( entities: [] )
-        rxPublish.onNext( [] )
+        if perPage != ARRAY_PER_PAGE
+        {
+            Set( entities: [] )
+            rxPublish.onNext( [] )
+        }
     }
 
     func Append( entities: [Entity] ) -> [Entity]

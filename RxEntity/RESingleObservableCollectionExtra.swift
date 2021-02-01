@@ -9,7 +9,6 @@
 import Foundation
 import RxSwift
 import RxRelay
-import RxCocoa
 
 public struct RESingleParams<Entity: REEntity, Extra, CollectionExtra>
 {
