@@ -353,6 +353,7 @@ class REEntityObservableTests: XCTestCase
             
         }
         
+        XCTAssertNotEqual( pages.perPage, RE_ARRAY_PER_PAGE )
         Thread.sleep( forTimeInterval: 0.5 )
         
         _ = try! pages
@@ -421,6 +422,7 @@ class REEntityObservableTests: XCTestCase
         }
         
         let array = collection.CreateKeyArray( initial: [TestEntity( id: "1", value: "3" ), TestEntity( id: "2", value: "4" )] )
+        XCTAssertEqual( array.perPage, RE_ARRAY_PER_PAGE )
         
         Thread.sleep( forTimeInterval: 0.5 )
         
@@ -905,6 +907,8 @@ class REEntityObservableTests: XCTestCase
         let allArray = collection.CreateArrayBack { _ in Single.just( repository.items ) }
         let array = collection.CreateKeyArray( keys: ["1", "2"] )
         let single = collection.CreateSingle( key: "1" )
+        
+        XCTAssertEqual( allArray.perPage, RE_ARRAY_PER_PAGE )
         
         Thread.sleep( forTimeInterval: 0.5 )
 

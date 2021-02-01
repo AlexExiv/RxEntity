@@ -31,7 +31,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
     init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: OperationQueueScheduler )
     {
         self._keys = keys
-        super.init( holder: holder, extra: extra, perPage: 0, observeOn: observeOn )
+        super.init( holder: holder, extra: extra, observeOn: observeOn )
     }
     
     override func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
