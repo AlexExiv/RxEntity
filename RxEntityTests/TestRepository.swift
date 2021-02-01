@@ -119,6 +119,12 @@ class TestRepository<Entity: REBackEntityProtocol>: REEntityRepository<Entity>
         rxEntitiesUpdated.accept( [REEntityUpdated( key: key, operation: .delete )] )
     }
     
+    func Clear()
+    {
+        items.removeAll()
+        rxEntitiesUpdated.accept( [REEntityUpdated( key: 0, operation: .clear )] )
+    }
+    
     override func RxGet( key: REEntityKey ) -> Single<Entity?>
     {
         return Single.just( items.first(where: { $0._key == key } ) )

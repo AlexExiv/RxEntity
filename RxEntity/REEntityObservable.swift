@@ -76,6 +76,11 @@ public class REEntityObservable<Entity: REEntity>
         fatalError( "This method must be overridden" )
     }
     
+    func Clear()
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
     func RefreshData( resetCache: Bool, data: Any? )
     {
         

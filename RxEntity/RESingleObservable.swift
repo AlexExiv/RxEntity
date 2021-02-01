@@ -72,8 +72,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 rxState.accept( .ready )
                 
             case .delete, .clear:
-                rxPublish.onNext( nil )
-                rxState.accept( .deleted )
+                Clear()
             }
         }
     }
@@ -89,8 +88,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
                 rxState.accept( .ready )
                 
             case .delete, .clear:
-                rxPublish.onNext( nil )
-                rxState.accept( .deleted )
+                Clear()
             }
         }
     }
@@ -99,9 +97,14 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     {
         if let k = entity?._key, keys.contains( k )
         {
-            rxPublish.onNext( nil )
-            rxState.accept( .deleted )
+            Clear()
         }
+    }
+    
+    override func Clear()
+    {
+        rxPublish.onNext( nil )
+        rxState.accept( .deleted )
     }
     
     func Set( key: REEntityKey )

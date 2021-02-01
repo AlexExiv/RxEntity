@@ -165,6 +165,11 @@ public class REEntityCollection<Entity: REEntity>
         fatalError( "This method must be overridden" )
     }
     
+    func CommitClear()
+    {
+        fatalError( "This method must be overridden" )
+    }
+    
     //MARK: - Create
     func CreateSingle( initial: Entity, refresh: Bool = false ) -> RESingleObservable<Entity>
     {

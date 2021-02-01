@@ -73,7 +73,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
             Remove( key: entity._key )
             
         case .clear:
-            Set( entities: [] )
+            Clear()
         }
     }
     
@@ -110,6 +110,11 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         
         super.Remove( key: key )
         _keys.Remove( key: key )
+    }
+    
+    override func Clear()
+    {
+        keys = []
     }
 }
 

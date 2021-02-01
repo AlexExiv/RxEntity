@@ -98,7 +98,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
             Refresh( extra: extra )
             
         case .clear:
-            Set( entities: [] )
+            Clear()
             
         default:
             let _entities = self.entities
@@ -164,6 +164,11 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
                 Remove( key: $0._key )
             }
         }
+    }
+    
+    override func Clear()
+    {
+        Set( entities: [] )
     }
     
     //MARK: - Set

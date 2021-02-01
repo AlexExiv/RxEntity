@@ -519,12 +519,15 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     //MARK: - Commit
     public override func Commit( entity: Entity, operation: REUpdateOperation = .update )
     {
-        if operation == .delete
+        switch operation
         {
+        case .delete:
             CommitDelete( keys: Set( arrayLiteral: entity._key ) )
-        }
-        else
-        {
+            
+        case .clear:
+            CommitClear()
+            
+        default:
             lock.lock()
             defer { lock.unlock() }
             
@@ -535,29 +538,36 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
 
     public override func Commit( key: REEntityKey, operation: REUpdateOperation )
     {
-        if operation == .delete
+        switch operation
         {
+        case .delete:
             CommitDelete( keys: Set( arrayLiteral: key ) )
-        }
-        else if let r = repository
-        {
-            r._RxGet( key: key )
-                .observeOn( queue )
-                .flatMap { $0 == nil ? Single.just( nil ) : self.RxRequestForCombine( source: "", entity: Entity( entity: $0! ), updateChilds: false ).map { $0 } }
-                .subscribe( onSuccess:
-                {
-                    if let e = $0
+            
+        case .clear:
+            CommitClear()
+            
+        default:
+            if let r = repository
+            {
+                r._RxGet( key: key )
+                    .observeOn( queue )
+                    .flatMap { $0 == nil ? Single.just( nil ) : self.RxRequestForCombine( source: "", entity: Entity( entity: $0! ), updateChilds: false ).map { $0 } }
+                    .subscribe( onSuccess:
                     {
-                        self.Commit( entity: e, operation: operation )
-                    }
-                }, onError: { _ in } )
-                .disposed( by: dispBag )
-        }
-        else
-        {
-            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+                        if let e = $0
+                        {
+                            self.Commit( entity: e, operation: operation )
+                        }
+                    }, onError: { _ in } )
+                    .disposed( by: dispBag )
+            }
+            else
+            {
+                preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+            }
         }
     }
+    
     public override func Commit( key: REEntityKey, changes: (Entity) -> Entity )
     {
         lock.lock()
@@ -573,12 +583,15 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     public override func Commit( entities: [Entity], operation: REUpdateOperation = .update )
     {
-        if operation == .delete
+        switch operation
         {
+        case .delete:
             CommitDelete( keys: Set( entities.map { $0._key } ) )
-        }
-        else
-        {
+            
+        case .clear:
+            CommitClear()
+            
+        default:
             lock.lock()
             defer { lock.unlock() }
             
@@ -603,6 +616,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         let otherEntities = entities.enumerated().filter { operations[$0.0] != .delete }.map { $0.1 }
         let otherOpers = operations.filter { $0 != .delete }
         
+        if let _ = operations.first( where: { $0 == .clear } )
+        {
+            CommitClear()
+        }
+        
         CommitDelete( keys: deleteKeys )
         
         lock.lock()
@@ -626,21 +644,27 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     public override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
     {
-        if operation == .delete
+        switch operation
         {
+        case .delete:
             CommitDelete( keys: Set( keys ) )
-        }
-        else if let r = repository
-        {
-            r._RxGet( keys: keys )
-                .observeOn( queue )
-                .flatMap { self.RxRequestForCombine( source: "", entities: $0.map { Entity( entity: $0 ) }, updateChilds: false ).map { $0 } }
-                .subscribe( onSuccess: { self.Commit( entities: $0, operation: operation ) }, onError: { _ in } )
-                .disposed( by: dispBag )
-        }
-        else
-        {
-            preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+            
+        case .clear:
+            CommitClear()
+            
+        default:
+            if let r = repository
+            {
+                r._RxGet( keys: keys )
+                    .observeOn( queue )
+                    .flatMap { self.RxRequestForCombine( source: "", entities: $0.map { Entity( entity: $0 ) }, updateChilds: false ).map { $0 } }
+                    .subscribe( onSuccess: { self.Commit( entities: $0, operation: operation ) }, onError: { _ in } )
+                    .disposed( by: dispBag )
+            }
+            else
+            {
+                preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
+            }
         }
     }
     
@@ -649,6 +673,11 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         let deleteKeys = Set( keys.enumerated().filter { operations[$0.0] == .delete }.map { $0.1 } )
         let otherKeys = keys.enumerated().filter { operations[$0.0] != .delete }.map { $0.1 }
         let otherOpers = operations.filter { $0 != .delete }
+        
+        if let _ = operations.first( where: { $0 == .clear } )
+        {
+            CommitClear()
+        }
         
         CommitDelete( keys: deleteKeys )
         
@@ -691,6 +720,14 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         defer { lock.unlock() }
         
         items.forEach { $0.ref?.Delete( keys: keys ) }
+    }
+    
+    override func CommitClear()
+    {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        items.forEach { $0.ref?.Clear() }
     }
 
     //MARK: - Updates
