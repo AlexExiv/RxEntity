@@ -93,7 +93,7 @@ extension Array where Element: REEntity
         return map
     }
     
-    public func Find( key: REEntityKey ) -> REEntity?
+    public func Find( key: REEntityKey ) -> Element?
     {
         return first( where: { $0._key == key } )
     }
