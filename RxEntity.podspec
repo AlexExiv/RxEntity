@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 #
 
 s.name         = "RxEntity"
-s.version      = "0.4.6"
+s.version      = "0.5.0"
 s.summary      = "Swift Entity collection based on RxSwift"
 
 # This description is used to generate tags and improve search results.
@@ -64,7 +64,7 @@ s.social_media_url   = "https://www.facebook.com/alexexiv"
 
 # s.platform     = :ios
 s.platform     = :ios, "10.0"
-s.swift_version = "5.0"
+s.swift_version = "5.3"
 
 #  When using multiple platforms
 # s.ios.deployment_target = "9.0"
@@ -79,7 +79,7 @@ s.swift_version = "5.0"
 #  Supports git, hg, bzr, svn and HTTP.
 #
 
-s.source       = { :git => "https://github.com/AlexExiv/RxEntity-Swift.git", :tag => "0.4.6" }
+s.source       = { :git => "https://github.com/AlexExiv/RxEntity-Swift.git", :tag => "0.5.0" }
 
 
 # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -132,8 +132,8 @@ s.source_files  = 'RxEntity', 'RxEntity/**/*.{h,m,swift}'
 s.requires_arc = true
 
 # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-s.dependency "RxSwift", "~> 5.0"
-s.dependency "RxCocoa", "~> 5.0"
-s.dependency "RxRelay", "~> 5.0"
+s.dependency "RxSwift", "~> 6.1.0"
+s.dependency "RxCocoa", "~> 6.1.0"
+s.dependency "RxRelay", "~> 6.1.0"
 
 end
