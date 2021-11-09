@@ -68,8 +68,8 @@ public class REEntityCollection<Entity: REEntity>
                 
                 return Disposables.create()
             }
-            .observeOn( queue )
-            .subscribeOn( queue )
+            .observe( on: queue )
+            .subscribe( on: queue )
     }
     
     public func RxUpdate( source: String = "", entities: [Entity] ) -> Single<[Entity]>
@@ -84,8 +84,8 @@ public class REEntityCollection<Entity: REEntity>
                 
                 return Disposables.create()
             }
-            .observeOn( queue )
-            .subscribeOn( queue )
+            .observe( on: queue )
+            .subscribe( on: queue )
     }
     
     open func Update( source: String = "", entity: Entity )

@@ -507,9 +507,9 @@ class REEntityObservableTests: XCTestCase
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs, rxObs1 ) { ($0.Modified( value: $1 + $2 ), true) }
-        collection.combineLatest( rxObs ) { ($0.Modified( value: $1 ), true) }
-        collection.combineLatest( rxObs1 ) { ($0.Modified( value: $1 ), true) }
+        collection.combineLatest( rxObs, rxObs1 ) { $0.Modified( value: $1 + $2 ) }
+        collection.combineLatest( rxObs ) { $0.Modified( value: $1 ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: $1 ) }
         let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
 
         var s = try! single0
@@ -545,7 +545,7 @@ class REEntityObservableTests: XCTestCase
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
-        collection.combineLatest( rxObs ) { ($0.Modified( value: $1 ), $1 != "4" ) }
+        collection.combineLatest( rxObs ) { $0.1 != "4" } apply: { $0.0.Modified( value: $0.1 ) }
         
         let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
         Thread.sleep( forTimeInterval: 0.5 )
@@ -583,8 +583,8 @@ class REEntityObservableTests: XCTestCase
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
-        collection.combineLatest( rxObs1 ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
+        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
         
         let pager = collection.CreatePaginatorBack( perPage: 2 ) {
             if ($0.page == 0)
@@ -644,7 +644,7 @@ class REEntityObservableTests: XCTestCase
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ) )
         let rxObs = BehaviorSubject( value: "2" )
-        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), $1 != "4" ) }
+        collection.combineLatest( rxObs ) { $0.1 != "4" } apply: { $0.0.Modified( value: "\($0.0.id)\($0.1)" ) }
         
         let pager = collection.CreatePaginatorBack( perPage: 2 ) {
             if ($0.page == 0)
@@ -705,8 +705,9 @@ class REEntityObservableTests: XCTestCase
 
         let rxObs = BehaviorSubject( value: "2" )
         let rxObs1 = BehaviorSubject( value: "3" )
-        collection.combineLatest( rxObs ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
-        collection.combineLatest( rxObs1 ) { ($0.Modified( value: "\($0.id)\($1)" ), true) }
+
+        collection.combineLatest( rxObs ) { $0.Modified( value: "\($0.id)\($1)" ) }
+        collection.combineLatest( rxObs1 ) { $0.Modified( value: "\($0.id)\($1)" ) }
 
         collection.arrayFetchCallback = { pp in
             Single.just( [] )

@@ -124,7 +124,7 @@ extension ObservableType
 {
     public func bind<Entity: REEntity>( refresh: REKeyArrayObservableExtra<Entity, Element>, resetCache: Bool = false ) -> Disposable
     {
-        return observeOn( refresh.queue )
+        return observe( on: refresh.queue )
             .subscribe( onNext: { refresh._Refresh( resetCache: resetCache, extra: $0 ) } )
     }
 }
@@ -133,7 +133,7 @@ extension ObservableType where Element == [REEntityKey]
 {
     public func bind<Entity: REEntity, Extra>( keys: REKeyArrayObservableExtra<Entity, Extra> ) -> Disposable
     {
-        return observeOn( keys.queue )
+        return observe( on: keys.queue )
             .subscribe( onNext: { keys.keys = $0 } )
     }
 }

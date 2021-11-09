@@ -66,7 +66,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
                         
                         return Observable.just( e! )
                     }
-                    .catchError
+                    .catch
                     {
                         e -> Observable<Entity> in
                         if (e as NSError).code == 404
@@ -81,7 +81,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
                         return Observable.empty()
                     }
             }
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .do( onNext:
             {
                 _self?.Set( key: $0._key )
@@ -105,7 +105,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         
         weak var _self = self
         Single.just( true )
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .flatMap { _ in _self?.collection?.RxRequestForCombine( source: _self?.uuid ?? "", entity: initial ).map { $0 } ?? Single.just( nil ) }
             .subscribe( onSuccess:
             {
@@ -148,8 +148,8 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
                 
                 return Disposables.create()
             }
-            .subscribeOn( queue )
-            .observeOn( queue )
+            .subscribe( on: queue )
+            .observe( on: queue )
             .subscribe()
             .disposed( by: dispBag )
     }

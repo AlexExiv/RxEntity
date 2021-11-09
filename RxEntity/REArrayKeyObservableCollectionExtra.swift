@@ -67,18 +67,18 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
         rxKeys
             .filter { $0.keys.count > 0 }
             .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
-            .observeOn( queue )
+            .observe( on: queue )
             .flatMapLatest( {
                 (_self?.RxFetchElements( params: $0, fetch: fetch ) ?? Single.just( [] ))
                     .asObservable()
-                    .catchError
+                    .catch
                     {
                         _self?.rxError.accept( $0 )
                         _self?.rxLoader.accept( .none )
                         return Observable.just( [] )
                     }
             } )
-            .observeOn( observeOn )
+                .observe( on: observeOn )
             .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
             .flatMap { _self?.collection?.RxRequestForCombine( source: _self?.uuid ?? "", entities: $0 ) ?? Single.just( [] ) }
             .subscribe( onNext: { _self?.Set( entities: $0 ) } )
@@ -86,7 +86,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
         
         rxKeys
             .filter { $0.keys.count == 0 }
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
             .subscribe( onNext: { _ in _self?.Set( entities: [] ) } )
             .disposed( by: dispBag )
@@ -103,7 +103,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
         
         weak var _self = self
         Single.just( true )
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .flatMap { _ in _self?.collection?.RxRequestForCombine( source: _self?.uuid ?? "", entities: initial ) ?? Single.just( [] ) }
             .subscribe( onSuccess: { _self?.Set( entities: $0 ) } )
             .disposed( by: dispBag )
@@ -145,8 +145,8 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
                 $0( .success( true ) )
                 return Disposables.create()
             }
-            .observeOn( queue )
-            .subscribeOn( queue )
+            .observe( on: queue )
+            .subscribe( on: queue )
             .subscribe()
             .disposed( by: dispBag )
     }

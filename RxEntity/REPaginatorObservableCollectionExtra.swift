@@ -59,14 +59,14 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
                 fetch( $0 )
                     .asObservable()
                     //.do( onNext: { _self?.Set( keys: $0.map { $0._key } ) } )
-                    .catchError
+                    .catch
                     {
                         _self?.rxError.accept( $0 )
                         _self?.rxLoader.accept( .none )
                         return Observable.just( [] )
                     }
             } )
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .do( onNext: { _ in _self?.rxLoader.accept( .none ) } )
             .flatMap { _self?.collection?.RxRequestForCombine( source: _self?.uuid ?? "", entities: $0 ) ?? Single.just( [] ) }
             .subscribe( onNext: { _self?.Set( entities: _self?.Append( entities: $0 ) ?? [] ) } )
@@ -85,7 +85,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         
         weak var _self = self
         Single.just( true )
-            .observeOn( observeOn )
+            .observe( on: observeOn )
             .flatMap { _ in _self?.collection?.RxRequestForCombine( source: _self?.uuid ?? "", entities: initial ) ?? Single.just( [] ) }
             .subscribe( onSuccess: { _self?.Set( entities: $0 ) } )
             .disposed( by: dispBag )
@@ -146,8 +146,8 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
                 $0( .success( true ) )
                 return Disposables.create()
             }
-            .observeOn( queue )
-            .subscribeOn( queue )
+            .observe( on: queue )
+            .subscribe( on: queue )
             .subscribe()
             .disposed( by: dispBag )
     }

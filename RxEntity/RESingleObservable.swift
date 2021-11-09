@@ -147,7 +147,7 @@ extension ObservableType
 {
     public func bind<Entity: REEntity>( refresh: RESingleObservableExtra<Entity, Element>, resetCache: Bool = false ) -> Disposable
     {
-        return observeOn( refresh.queue )
+        return observe( on: refresh.queue )
             .subscribe( onNext: { refresh._Refresh( resetCache: resetCache, extra: $0 ) } )
     }
 }
