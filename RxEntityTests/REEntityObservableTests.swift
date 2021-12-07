@@ -808,6 +808,44 @@ class REEntityObservableTests: XCTestCase
     }
     
     
+    func testSingleKey()
+    {
+        let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )
+        collection.singleFetchCallback = { Single.just( TestEntity( id: $0.key!.stringKey, value: "2" ) ) }
+        let single = collection.CreateSingle()
+
+        var s = try! single
+            .rxState
+            .toBlocking()
+            .first()!
+        
+        let l = try! single
+            .rxLoader
+            .toBlocking()
+            .first()!
+        
+        XCTAssertEqual( l, REEntityObservable.Loading.none )
+        XCTAssertEqual( s, RESingleObservableExtra.State.initializing )
+        
+        single.key = "1"
+
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        s = try! single
+            .rxState
+            .toBlocking()
+            .first()!
+        
+        let e = try! single
+            .toBlocking( timeout: nil )
+            .first()!
+        
+        XCTAssertEqual( s, RESingleObservableExtra.State.ready )
+        XCTAssertEqual( single.entity!.id, "1" )
+        XCTAssertEqual( e.id, "1" )
+        XCTAssertEqual( e.value, "2" )
+    }
+    
     func testCommits()
     {
         let collection = REEntityObservableCollectionExtra<TestEntity, ExtraCollectionParams>( queue: OperationQueueScheduler( operationQueue: OperationQueue() ), collectionExtra: ExtraCollectionParams( test: "2" ) )

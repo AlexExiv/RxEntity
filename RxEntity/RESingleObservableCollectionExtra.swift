@@ -37,9 +37,27 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
     public typealias SingleFetchBackCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<REBackEntityProtocol?>
     public typealias SingleFetchCallback = (RESingleParams<Entity, Extra, CollectionExtra>) -> Single<Entity?>
     
-    let _rxRefresh = PublishRelay<RESingleParams<Entity, Extra, CollectionExtra>>()
+    let _rxRefresh = BehaviorRelay<RESingleParams<Entity, Extra, CollectionExtra>?>( value: nil )
     public private(set) var collectionExtra: CollectionExtra? = nil
     var started = false
+    
+    public override var key: REEntityKey?
+    {
+        set
+        {
+            lock.lock()
+            defer { lock.unlock() }
+            super.key = newValue
+            
+            let params = _rxRefresh.value
+            _rxRefresh.accept( RESingleParams( refreshing: true, resetCache: true, first: true, key: newValue, lastEntity: entity, extra: params?.extra, collectionExtra: params?.collectionExtra ) )
+            started = true
+        }
+        get
+        {
+            super.key
+        }
+    }
 
     init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
     {
@@ -49,7 +67,16 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         
         weak var _self = self
         _rxRefresh
-            .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
+            .filter { $0 != nil }
+            .map { $0! }
+            .do( onNext:
+            {
+                _self?.rxLoader.accept( $0.first ? .firstLoading : .loading )
+                if $0.first
+                {
+                    _self?.rxState.accept( .initializing )
+                }
+            } )
             .flatMapLatest
             {
                 fetch( $0 )
@@ -84,7 +111,8 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
             .observe( on: observeOn )
             .do( onNext:
             {
-                _self?.Set( key: $0._key )
+                _ in
+                //_self?.Set( key: $0._key )
                 _self?.rxLoader.accept( .none )
                 _self?.rxState.accept( .ready )
             } )

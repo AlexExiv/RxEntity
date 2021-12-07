@@ -26,7 +26,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     public private(set) var extra: Extra? = nil
     
-    public private(set) var key: REEntityKey? = nil
+    public var key: REEntityKey? = nil
     public var entity: Entity?
     {
         return try! rxPublish.value()

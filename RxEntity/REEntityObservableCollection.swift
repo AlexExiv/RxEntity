@@ -189,18 +189,18 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         preconditionFailure( "To create Single with initial value you must specify singleFetchCallback or singleFetchBackCallback before" )
     }
     
-    public func CreateSingle( key: REEntityKey, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
+    public func CreateSingle( key: REEntityKey? = nil, start: Bool = true, refresh: Bool = false ) -> RESingleObservable<Entity>
     {
-        let e = sharedEntities[key]
+        let e = key == nil ? nil : sharedEntities[key!]
         if e == nil
         {
             if singleFetchCallback != nil
             {
-                return CreateSingle( key: key, start: start, singleFetchCallback! )
+                return CreateSingle( key: key, start: key != nil && start, singleFetchCallback! )
             }
             else if singleFetchBackCallback != nil
             {
-                return CreateSingleBack( key: key, start: start, singleFetchBackCallback! )
+                return CreateSingleBack( key: key, start: key != nil && start, singleFetchBackCallback! )
             }
             
             preconditionFailure( "To create Single with key you must specify singleFetchCallback or singleFetchBackCallback before" )
