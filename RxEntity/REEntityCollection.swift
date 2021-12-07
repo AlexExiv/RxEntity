@@ -92,6 +92,9 @@ public class REEntityCollection<Entity: REEntity>
     {
         assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
         
+        lock.lock()
+        defer { lock.unlock() }
+        
         sharedEntities[entity._key] = entity
         items.forEach { $0.ref?.Update( source: source, entity: entity ) }
     }
@@ -99,6 +102,9 @@ public class REEntityCollection<Entity: REEntity>
     open func Update( source: String = "", entities: [Entity] )
     {
         assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
+        
+        lock.lock()
+        defer { lock.unlock() }
         
         entities.forEach { sharedEntities[$0._key] = $0 }
         items.forEach { $0.ref?.Update( source: source, entities: entities.asEntitiesMap() ) }
