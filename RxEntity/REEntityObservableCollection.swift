@@ -311,79 +311,79 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
     
     //MARK: - Combine Latest
-    public func combineLatest<T>( _ source: Observable<T>, test: @escaping ((Entity, T)) -> Bool = { _ in true }, apply: @escaping ((Entity, T)) -> Entity )
+    public func combineLatest<O: ObservableType>( _ source: O, test: @escaping ((Entity, O.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O.Element)) -> Entity )
     {
-        combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.asObservable().observe( on: queue )], test: { (e, a) in test( (e, a[0] as! T) ) }, combine: { (e, a) in apply( (e, a[0] as! T) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.observe( on: queue )], test: { (e, a) in test( (e, a[0] as! O.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O.Element) ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ test: @escaping ((Entity, T0, T1)) -> Bool = { _ in true }, apply: @escaping ((Entity, T0, T1)) -> Entity )
+    public func combineLatest<O0: ObservableType, O1: ObservableType>( _ source0: O0, _ source1: O1, _ test: @escaping ((Entity, O0.Element, O1.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O0.Element, O1.Element)) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        let sources = [source0.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source1.map { $0 as Any }.asObservable().observe( on: queue )]
+        let sources = [source0.map { $0 as Any }.observe( on: queue ),
+                       source1.map { $0 as Any }.observe( on: queue )]
         
-        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! T0, a[1] as! T1) ) }, combine: { (e, a) in apply( (e, a[0] as! T0, a[1] as! T1) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! O0.Element, a[1] as! O1.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O0.Element, a[1] as! O1.Element) ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, test: @escaping ((Entity, T0, T1, T2)) -> Bool = { _ in true }, _ apply: @escaping ((Entity, T0, T1, T2)) -> Entity )
+    public func combineLatest<O0: ObservableType, O1: ObservableType, O2: ObservableType>( _ source0: O0, _ source1: O1, _ source2: O2, test: @escaping ((Entity, O0.Element, O1.Element, O2.Element)) -> Bool = { _ in true }, _ apply: @escaping ((Entity, O0.Element, O1.Element, O2.Element)) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        let sources = [source0.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source1.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source2.map { $0 as Any }.asObservable().observe( on: queue )]
+        let sources = [source0.map { $0 as Any }.observe( on: queue ),
+                       source1.map { $0 as Any }.observe( on: queue ),
+                       source2.map { $0 as Any }.observe( on: queue )]
         
-        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2) ) }, combine: { (e, a) in apply( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element) ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, test: @escaping ((Entity, T0, T1, T2, T3)) -> Bool = { _ in true }, apply: @escaping ((Entity, T0, T1, T2, T3)) -> Entity )
+    public func combineLatest<O0: ObservableType, O1: ObservableType, O2: ObservableType, O3: ObservableType>( _ source0: O0, _ source1: O1, _ source2: O2, _ source3: O3, test: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element)) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        let sources = [source0.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source1.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source2.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source3.map { $0 as Any }.asObservable().observe( on: queue )]
+        let sources = [source0.map { $0 as Any }.observe( on: queue ),
+                       source1.map { $0 as Any }.observe( on: queue ),
+                       source2.map { $0 as Any }.observe( on: queue ),
+                       source3.map { $0 as Any }.observe( on: queue )]
         
-        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3) ) }, combine: { (e, a) in apply( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element) ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3, T4>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, test: @escaping ((Entity, T0, T1, T2, T3, T4)) -> Bool = { _ in true }, apply: @escaping ((Entity, T0, T1, T2, T3, T4)) -> Entity )
+    public func combineLatest<O0: ObservableType, O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType>( _ source0: O0, _ source1: O1, _ source2: O2, _ source3: O3, _ source4: O4, test: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element, O4.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element, O4.Element)) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        let sources = [source0.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source1.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source2.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source3.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source4.map { $0 as Any }.asObservable().observe( on: queue )]
+        let sources = [source0.map { $0 as Any }.observe( on: queue ),
+                       source1.map { $0 as Any }.observe( on: queue ),
+                       source2.map { $0 as Any }.observe( on: queue ),
+                       source3.map { $0 as Any }.observe( on: queue ),
+                       source4.map { $0 as Any }.observe( on: queue )]
         
-        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4) ) }, combine: { (e, a) in apply( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element, a[4] as! O4.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element, a[4] as! O4.Element) ) } ) )
         BuildCombines()
     }
 
-    public func combineLatest<T0, T1, T2, T3, T4, T5>( _ source0: Observable<T0>, _ source1: Observable<T1>, _ source2: Observable<T2>, _ source3: Observable<T3>, _ source4: Observable<T4>, _ source5: Observable<T5>, _ test: @escaping ((Entity, T0, T1, T2, T3, T4, T5)) -> Bool = { _ in true }, apply: @escaping ((Entity, T0, T1, T2, T3, T4, T5)) -> Entity )
+    public func combineLatest<O0: ObservableType, O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType>( _ source0: O0, _ source1: O1, _ source2: O2, _ source3: O3, _ source4: O4, _ source5: O5, _ test: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element, O4.Element, O5.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O0.Element, O1.Element, O2.Element, O3.Element, O4.Element, O5.Element)) -> Entity )
     {
         lock.lock()
         defer { lock.unlock() }
         
-        let sources = [source0.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source1.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source2.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source3.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source4.map { $0 as Any }.asObservable().observe( on: queue ),
-                       source5.map { $0 as Any }.asObservable().observe( on: queue )]
+        let sources = [source0.map { $0 as Any }.observe( on: queue ),
+                       source1.map { $0 as Any }.observe( on: queue ),
+                       source2.map { $0 as Any }.observe( on: queue ),
+                       source3.map { $0 as Any }.observe( on: queue ),
+                       source4.map { $0 as Any }.observe( on: queue ),
+                       source5.map { $0 as Any }.observe( on: queue )]
         
-        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4, a[5] as! T5) ) }, combine: { (e, a) in apply( (e, a[0] as! T0, a[1] as! T1, a[2] as! T2, a[3] as! T3, a[4] as! T4, a[5] as! T5) ) } ) )
+        combineSources.append( RECombineSource<Entity>( sources: sources, test: { (e, a) in test( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element, a[4] as! O4.Element, a[5] as! O5.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O0.Element, a[1] as! O1.Element, a[2] as! O2.Element, a[3] as! O3.Element, a[4] as! O4.Element, a[5] as! O5.Element) ) } ) )
         BuildCombines()
     }
     
