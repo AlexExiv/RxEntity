@@ -28,7 +28,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
     }
     var _keys: [REEntityKey] = []
 
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, observeOn: SchedulerType )
     {
         self._keys = keys
         super.init( holder: holder, extra: extra, observeOn: observeOn )

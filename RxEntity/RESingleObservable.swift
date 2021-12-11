@@ -19,7 +19,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         case initializing, ready, notFound, deleted
     }
     
-    let queue: OperationQueueScheduler
+    let queue: SchedulerType
     
     public let rxState = BehaviorRelay<State>( value: .initializing )
     let rxPublish = BehaviorSubject<Entity?>( value: nil )
@@ -32,7 +32,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         return try! rxPublish.value()
     }
     
-    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, observeOn: SchedulerType )
     {
         self.queue = observeOn
         self.key = key
@@ -43,8 +43,6 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( source: String, entity: Entity )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
-        
         if let key = self.entity?._key, key == entity._key, source != uuid
         {
             rxPublish.onNext( entity )
@@ -53,8 +51,6 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( source: String, entities: [REEntityKey: Entity] )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Single observable can be updated only from the same queue with the parent collection" )
-        
         if let key = entity?._key, let entity = entities[key], source != uuid
         {
             rxPublish.onNext( entity )
@@ -119,7 +115,9 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     func _Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
+        
         self.extra = extra ?? self.extra
     }
 

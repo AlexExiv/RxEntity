@@ -46,7 +46,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     public private(set) var collectionExtra: CollectionExtra? = nil
     var started = false
       
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping PageFetchCallback<Extra, CollectionExtra> )
+    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: SchedulerType, fetch: @escaping PageFetchCallback<Extra, CollectionExtra> )
     {
         self.collectionExtra = collectionExtra
         super.init( holder: holder, extra: extra, perPage: perPage, observeOn: observeOn )
@@ -79,7 +79,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         }
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping PageFetchCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping PageFetchCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, collectionExtra: collectionExtra, start: false, observeOn: observeOn, fetch: fetch )
         
@@ -93,12 +93,12 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         started = true
     }
     
-    convenience init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: SchedulerType, fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, extra: extra, collectionExtra: collectionExtra, perPage: perPage, start: start, observeOn: observeOn, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping PageFetchBackCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, initial: initial, collectionExtra: collectionExtra, observeOn: observeOn, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
@@ -154,7 +154,8 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
     
     func _CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         super._Refresh( resetCache: resetCache, extra: extra )
         self.collectionExtra = collectionExtra ?? self.collectionExtra

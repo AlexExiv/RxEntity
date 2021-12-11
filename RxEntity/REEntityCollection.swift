@@ -22,13 +22,12 @@ public class REEntityCollection<Entity: REEntity>
     public var entitiesByKey: [REEntityKey: Entity] { sharedEntities }
     
     let lock = NSRecursiveLock()
-    let queue: OperationQueueScheduler
+    let queue: SchedulerType
     let dispBag = DisposeBag()
     
-    init( queue: OperationQueueScheduler )
+    init( queue: SchedulerType )
     {
         self.queue = queue
-        self.queue.operationQueue.maxConcurrentOperationCount = 1
     }
     
     func Add( object: REEntityObservable<Entity> )
@@ -90,8 +89,6 @@ public class REEntityCollection<Entity: REEntity>
     
     open func Update( source: String = "", entity: Entity )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
-        
         lock.lock()
         defer { lock.unlock() }
         
@@ -101,8 +98,6 @@ public class REEntityCollection<Entity: REEntity>
     
     open func Update( source: String = "", entities: [Entity] )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Observable objects collection can be updated only from the specified in the constructor OperationQueue" )
-        
         lock.lock()
         defer { lock.unlock() }
         

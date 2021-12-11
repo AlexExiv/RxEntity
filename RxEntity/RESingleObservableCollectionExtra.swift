@@ -59,7 +59,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
     }
 
-    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
+    init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: SchedulerType, fetch: @escaping SingleFetchCallback )
     {
         self.collectionExtra = collectionExtra
         
@@ -127,7 +127,7 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         }
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchCallback )
+    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping SingleFetchCallback )
     {
         self.init( holder: holder, key: initial._key, collectionExtra: collectionExtra, start: false, observeOn: observeOn, fetch: fetch )
         
@@ -145,12 +145,12 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
         started = !refresh
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping SingleFetchBackCallback )
+    convenience init( holder: REEntityCollection<Entity>, initial: Entity, refresh: Bool, collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping SingleFetchBackCallback )
     {
         self.init( holder: holder, initial: initial, refresh: refresh, collectionExtra: collectionExtra, observeOn: observeOn, fetch: { fetch( $0 ).map { $0 == nil ? nil : Entity( entity: $0! ) } } )
     }
     
-    convenience init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: OperationQueueScheduler,  fetch: @escaping SingleFetchBackCallback )
+    convenience init( holder: REEntityCollection<Entity>, key: REEntityKey? = nil, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, start: Bool = true, observeOn: SchedulerType,  fetch: @escaping SingleFetchBackCallback )
     {
         self.init( holder: holder, key: key, extra: extra, collectionExtra: collectionExtra, start: start, observeOn: observeOn, fetch: { fetch( $0 ).map { $0 == nil ? nil : Entity( entity: $0! ) } } )
     }
@@ -189,7 +189,8 @@ public class RESingleObservableCollectionExtra<Entity: REEntity, Extra, Collecti
     
     func _CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         super._Refresh( resetCache: resetCache, extra: extra )
         self.collectionExtra = collectionExtra ?? self.collectionExtra

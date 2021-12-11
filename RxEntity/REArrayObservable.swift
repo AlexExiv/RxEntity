@@ -22,7 +22,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public typealias Element = [Entity]
     
     let rxPublish = BehaviorSubject<Element>( value: [] )
-    let queue: OperationQueueScheduler
+    let queue: SchedulerType
 
     public private(set) var page = -1
     public private(set) var perPage = RE_ARRAY_PER_PAGE
@@ -38,7 +38,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         }
     }*/
    
-    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: OperationQueueScheduler )
+    init( holder: REEntityCollection<Entity>, extra: Extra? = nil, perPage: Int = RE_ARRAY_PER_PAGE, start: Bool = true, observeOn: SchedulerType )
     {
         self.queue = observeOn
         self.extra = extra
@@ -50,8 +50,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     //MARK: - Update
     override func Update( source: String, entity: Entity )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
-        
         lock.lock()
         defer { lock.unlock() }
         
@@ -64,8 +62,6 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     
     override func Update( source: String, entities: [REEntityKey: Entity] )
     {
-        assert( queue.operationQueue == OperationQueue.current, "Paginator observable can be updated only from the same queue with the parent collection" )
-        
         guard source != uuid else { return }
         
         lock.lock()
@@ -202,7 +198,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     
     func _Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         self.extra = extra ?? self.extra
         page = -1
@@ -215,7 +212,9 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
 
     func Append( entities: [Entity] ) -> [Entity]
     {
-        assert( queue.operationQueue == OperationQueue.current, "Append can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
+        
         page = PAGINATOR_END
         return entities
     }

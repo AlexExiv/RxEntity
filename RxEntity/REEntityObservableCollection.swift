@@ -137,16 +137,21 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     private(set) var combineSources = [RECombineSource<Entity>]()
     
     var combineDisp: Disposable? = nil
-        
-    public convenience init( operationQueue: OperationQueue, collectionExtra: CollectionExtra? = nil )
-    {
-        self.init( queue: OperationQueueScheduler( operationQueue: operationQueue ), collectionExtra: collectionExtra )
-    }
     
-    public init( queue: OperationQueueScheduler, collectionExtra: CollectionExtra? = nil )
+    public init( queue: DispatchQueue? = nil, collectionExtra: CollectionExtra? = nil )
     {
         self.collectionExtra = collectionExtra
-        super.init( queue: queue )
+        super.init( queue: SerialDispatchQueueScheduler( queue: queue ?? DispatchQueue( label: "observable.collection" ), internalSerialQueueName: "observable.collection" ) )
+    }
+
+    public convenience init( operationQueue: OperationQueue, collectionExtra: CollectionExtra? = nil )
+    {
+        self.init( collectionExtra: collectionExtra )
+    }
+    
+    public convenience init( queue: OperationQueueScheduler, collectionExtra: CollectionExtra? = nil )
+    {
+        self.init( operationQueue: queue.operationQueue, collectionExtra: collectionExtra )
     }
     
     deinit
@@ -389,7 +394,8 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     override func RxRequestForCombine( source: String = "", entity: Entity, updateChilds: Bool = true ) -> Single<Entity>
     {
-        assert( queue.operationQueue == OperationQueue.current, "RxRequestForCombine can be called only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         var obs = Observable.just( entity )
         combineSources.forEach {
@@ -427,7 +433,8 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     override func RxRequestForCombine( source: String = "", entities: [Entity], updateChilds: Bool = true ) -> Single<[Entity]>
     {
-        assert( queue.operationQueue == OperationQueue.current, "RxRequestForCombine can be called only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         var obs = Observable.just( entities )
         combineSources.forEach {
@@ -865,7 +872,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     
     func _Refresh( resetCache: Bool = false, collectionExtra: CollectionExtra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be called only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
+        
         self.collectionExtra = collectionExtra ?? self.collectionExtra
         items.forEach { $0.ref?.RefreshData( resetCache: resetCache, data: self.collectionExtra ) }
     }

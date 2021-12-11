@@ -58,7 +58,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
 
     public private(set) var collectionExtra: CollectionExtra? = nil
       
-    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], start: Bool = true, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping ArrayFetchCallback<Extra, CollectionExtra> )
+    init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], start: Bool = true, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping ArrayFetchCallback<Extra, CollectionExtra> )
     {
         self.collectionExtra = collectionExtra
         super.init( holder: holder, keys: keys, extra: extra, observeOn: observeOn )
@@ -97,7 +97,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
         }
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping ArrayFetchCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping ArrayFetchCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, keys: initial.map { $0._key }, start: false, collectionExtra: collectionExtra, observeOn: observeOn, fetch: fetch )
         
@@ -109,12 +109,12 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
             .disposed( by: dispBag )
     }
     
-    convenience init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping ArrayFetchBackCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, keys: [REEntityKey] = [], extra: Extra? = nil, collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping ArrayFetchBackCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, keys: keys, extra: extra, collectionExtra: collectionExtra, observeOn: observeOn, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
     
-    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: OperationQueueScheduler, fetch: @escaping ArrayFetchBackCallback<Extra, CollectionExtra> )
+    convenience init( holder: REEntityCollection<Entity>, initial: [Entity], collectionExtra: CollectionExtra? = nil, observeOn: SchedulerType, fetch: @escaping ArrayFetchBackCallback<Extra, CollectionExtra> )
     {
         self.init( holder: holder, initial: initial, collectionExtra: collectionExtra, observeOn: observeOn, fetch: { fetch( $0 ).map { $0.map { Entity( entity: $0 ) } } } )
     }
@@ -153,7 +153,8 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
     
     func _CollectionRefresh( resetCache: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
     {
-        assert( queue.operationQueue == OperationQueue.current, "_Refresh can be updated only from the specified in the constructor OperationQueue" )
+        lock.lock()
+        defer { lock.unlock() }
         
         super._Refresh( resetCache: resetCache, extra: extra )
         self.collectionExtra = collectionExtra ?? self.collectionExtra
@@ -163,8 +164,6 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
     //MARK: - Fetch
     private func RxFetchElements( params: REKeyParams<Extra, CollectionExtra>, fetch: @escaping ArrayFetchCallback<Extra, CollectionExtra> ) -> Single<[Entity]>
     {
-        assert( queue.operationQueue == OperationQueue.current, "RxFetchElements can be called only from the specified in the constructor OperationQueue" )
-        
         if params.refreshing
         {
             return fetch( params )
