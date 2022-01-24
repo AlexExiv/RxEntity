@@ -139,7 +139,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     }
 }
 
-public typealias RESingleObservable<Entity: REEntity> = RESingleObservableExtra<Entity, REEntityExtraParamsEmpty>
+public typealias RESingleObservable<Entity: REEntity> = RESingleObservableExtra<Entity, Any>
 
 extension ObservableType
 {
