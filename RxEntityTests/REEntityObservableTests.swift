@@ -276,6 +276,12 @@ class REEntityObservableTests: XCTestCase
             return Single.just( TestEntityBack( id: "1", value: "2" ) )
             
         }
+        /*let m0 = [String: String]()
+        _ = m0 as! [String: Any]
+        
+        Dictionary
+        
+        _ = single as! RESingleObservable<TestEntity>*/
         
         _ = try! single
             .toBlocking()

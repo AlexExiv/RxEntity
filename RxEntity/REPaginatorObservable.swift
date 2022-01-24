@@ -41,4 +41,4 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
     }
 }
 
-public typealias REPaginatorObservable<Entity: REEntity> = REPaginatorObservableExtra<Entity, REEntityExtraParamsEmpty>
+public typealias REPaginatorObservable<Entity: REEntity> = REPaginatorObservableExtra<Entity, Any>

@@ -10,11 +10,6 @@ import Foundation
 import RxSwift
 import RxRelay
 
-public struct REEntityExtraParamsEmpty
-{
-    
-}
-
 public class REEntityObservable<Entity: REEntity>
 {
     public enum Loading

@@ -118,7 +118,7 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
     }
 }
 
-public typealias REKeyArrayObservable<Entity: REEntity> = REKeyArrayObservableExtra<Entity, REEntityExtraParamsEmpty>
+public typealias REKeyArrayObservable<Entity: REEntity> = REKeyArrayObservableExtra<Entity, Any>
 
 extension ObservableType
 {
