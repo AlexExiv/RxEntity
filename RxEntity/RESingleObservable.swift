@@ -12,7 +12,7 @@ import RxRelay
 
 public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservable<Entity>, ObservableType
 {
-    public typealias Element = Entity
+    public typealias Element = Entity?
     
     public enum State
     {
@@ -125,16 +125,12 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     public func subscribe<Observer: ObserverType>( _ observer: Observer ) -> Disposable where Observer.Element == Element
     {
         return rxPublish
-            .filter { $0 != nil }
-            .map { $0! }
             .subscribe( observer )
     }
     
-    public func asObservable() -> Observable<Entity>
+    public func asObservable() -> Observable<Element>
     {
         return rxPublish
-            .filter { $0 != nil }
-            .map { $0! }
             .asObservable()
     }
 }

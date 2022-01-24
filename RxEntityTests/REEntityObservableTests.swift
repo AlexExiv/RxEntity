@@ -364,17 +364,19 @@ class REEntityObservableTests: XCTestCase
         let single1 = pages[1]
         
         var s0 = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
         var s1 = try! single1
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s0.id, "1" )
-        XCTAssertEqual( s0.value, "test1" )
-        XCTAssertEqual( s1.id, "2" )
-        XCTAssertEqual( s1.value, "test2" )
+        XCTAssertEqual( s0!.id, "1" )
+        XCTAssertEqual( s0!.value, "test1" )
+        XCTAssertEqual( s1!.id, "2" )
+        XCTAssertEqual( s1!.value, "test2" )
         
         single0.Refresh()
         single1.Refresh()
@@ -382,17 +384,19 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         s0 = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
         s1 = try! single1
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s0.id, "1" )
-        XCTAssertEqual( s0.value, "testsr1" )
-        XCTAssertEqual( s1.id, "2" )
-        XCTAssertEqual( s1.value, "testsr2" )
+        XCTAssertEqual( s0!.id, "1" )
+        XCTAssertEqual( s0!.value, "testsr1" )
+        XCTAssertEqual( s1!.id, "2" )
+        XCTAssertEqual( s1!.value, "testsr2" )
         
         i = 1
         collection.Refresh( collectionExtra: ExtraCollectionParams( test: "test2" ) )
@@ -400,17 +404,19 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         s0 = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
         s1 = try! single1
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s0.id, "1" )
-        XCTAssertEqual( s0.value, "test21" )
-        XCTAssertEqual( s1.id, "2" )
-        XCTAssertEqual( s1.value, "test22" )
+        XCTAssertEqual( s0!.id, "1" )
+        XCTAssertEqual( s0!.value, "test21" )
+        XCTAssertEqual( s1!.id, "2" )
+        XCTAssertEqual( s1!.value, "test22" )
     }
     
     func testArrayInitial()
@@ -513,32 +519,35 @@ class REEntityObservableTests: XCTestCase
         let single0 = collection.CreateSingleBack( key: "1" ) { _ in Single.just( TestEntityBack( id: "1", value: "1" ) ) }
 
         var s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "3" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "3" )
 
         rxObs.onNext( "4" )
         rxObs1.onNext( "4" )
         Thread.sleep( forTimeInterval: 0.5 )
         
         s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "4" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "4" )
 
         rxObs1.onNext( "5" )
         Thread.sleep( forTimeInterval: 0.5 )
         
         s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "5" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "5" )
     }
     
     func testMergeWithSingleDecline()
@@ -551,31 +560,34 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
 
         var s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "2" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "2" )
 
         rxObs.onNext( "4" )
         Thread.sleep( forTimeInterval: 0.5 )
         
         s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "2" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "2" )
 
         rxObs.onNext( "5" )
         Thread.sleep( forTimeInterval: 0.5 )
         
         s = try! single0
+            .filter { $0 != nil }
             .toBlocking()
             .first()!
         
-        XCTAssertEqual( s.id, "1" )
-        XCTAssertEqual( s.value, "5" )
+        XCTAssertEqual( s!.id, "1" )
+        XCTAssertEqual( s!.value, "5" )
     }
     
     func testMergeWithPaginator()
@@ -837,13 +849,14 @@ class REEntityObservableTests: XCTestCase
             .first()!
         
         let e = try! single
+            .filter { $0 != nil }
             .toBlocking( timeout: nil )
             .first()!
         
         XCTAssertEqual( s, RESingleObservableExtra.State.ready )
         XCTAssertEqual( single.entity!.id, "1" )
-        XCTAssertEqual( e.id, "1" )
-        XCTAssertEqual( e.value, "2" )
+        XCTAssertEqual( e!.id, "1" )
+        XCTAssertEqual( e!.value, "2" )
     }
     
     func testCommits()
@@ -868,18 +881,24 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         var a = try! array.toBlocking().first()!
-        var s = try! single.toBlocking().first()!
+        var s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.value, "12" )
+        XCTAssertEqual( s!.value, "12" )
         XCTAssertEqual( a[0].value, "12" )
         
         collection.Commit( key: "1", changes: { TestEntity( id: $0.id, value: "13" ) } )
         Thread.sleep( forTimeInterval: 0.5 )
         
         a = try! array.toBlocking().first()!
-        s = try! single.toBlocking().first()!
+        s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.value, "13" )
+        XCTAssertEqual( s!.value, "13" )
         XCTAssertEqual( a[0].value, "13" )
         
         
@@ -887,9 +906,12 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         a = try! array.toBlocking().first()!
-        s = try! single.toBlocking().first()!
+        s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.value, "14" )
+        XCTAssertEqual( s!.value, "14" )
         XCTAssertEqual( a[0].value, "14" )
         XCTAssertEqual( a[1].value, "24" )
     }
@@ -908,9 +930,12 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
 
         var a = try! array.toBlocking().first()!
-        var s = try! single.toBlocking().first()!
+        var s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.value, "test1" )
+        XCTAssertEqual( s!.value, "test1" )
         XCTAssertEqual( a[0].value, "test1" )
         XCTAssertEqual( a[1].value, "test2" )
         
@@ -918,9 +943,12 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         a = try! array.toBlocking().first()!
-        s = try! single.toBlocking().first()!
+        s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.value, "test1-new" )
+        XCTAssertEqual( s!.value, "test1-new" )
         XCTAssertEqual( a[0].value, "test1-new" )
         
         repository.Delete( key: "1" )
@@ -1009,9 +1037,12 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         var a = try! array.toBlocking().first()!
-        var s = try! single.toBlocking().first()!
+        var s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.indirectValue, "indirect2" )
+        XCTAssertEqual( s!.indirectValue, "indirect2" )
         XCTAssertEqual( a[0].indirectValue, "indirect2" )
         XCTAssertEqual( a[1].indirectValue, "indirect1" )
         
@@ -1020,9 +1051,12 @@ class REEntityObservableTests: XCTestCase
         Thread.sleep( forTimeInterval: 0.5 )
         
         a = try! array.toBlocking().first()!
-        s = try! single.toBlocking().first()!
+        s = try! single
+            .filter { $0 != nil }
+            .toBlocking()
+            .first()!
         
-        XCTAssertEqual( s.indirectValue, "indirect-2" )
+        XCTAssertEqual( s!.indirectValue, "indirect-2" )
         XCTAssertEqual( a[0].indirectValue, "indirect-2" )
         XCTAssertEqual( a[1].indirectValue, "indirect-1" )
     }
