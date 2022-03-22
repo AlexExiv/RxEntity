@@ -43,7 +43,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( source: String, entity: Entity )
     {
-        if let key = self.entity?._key, key == entity._key, source != uuid
+        if let key = key ?? self.entity?._key, key == entity._key, source != uuid
         {
             rxPublish.onNext( entity )
         }
@@ -51,7 +51,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( source: String, entities: [REEntityKey: Entity] )
     {
-        if let key = entity?._key, let entity = entities[key], source != uuid
+        if let key = key ?? entity?._key, let entity = entities[key], source != uuid
         {
             rxPublish.onNext( entity )
         }
@@ -59,7 +59,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( entities: [REEntityKey: Entity], operation: REUpdateOperation )
     {
-        if let k = entity?._key, let e = entities[k]
+        if let k = key ?? entity?._key, let e = entities[k]
         {
             switch operation
             {
@@ -75,7 +75,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Update( entities: [REEntityKey: Entity], operations: [REEntityKey: REUpdateOperation] )
     {
-        if let k = entity?._key, let e = entities[k], let o = operations[k]
+        if let k = key ?? entity?._key, let e = entities[k], let o = operations[k]
         {
             switch o
             {
@@ -91,7 +91,7 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
     
     override func Delete( keys: Set<REEntityKey> )
     {
-        if let k = entity?._key, keys.contains( k )
+        if let k = key ?? entity?._key, keys.contains( k )
         {
             Clear()
         }
