@@ -532,21 +532,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     //MARK: - Commit
     public override func Commit( entity: Entity, operation: REUpdateOperation = .update )
     {
-        switch operation
-        {
-        case .delete:
-            CommitDelete( keys: Set( arrayLiteral: entity._key ) )
-            
-        case .clear:
-            CommitClear()
-            
-        default:
-            lock.lock()
-            defer { lock.unlock() }
-            
-            sharedEntities[entity._key] = entity
-            items.forEach { $0.ref?.Update( entity: entity, operation: operation ) }
-        }
+        Commit( entities: [entity], operation: operation )
     }
 
     public override func Commit( key: REEntityKey, operation: REUpdateOperation )
@@ -605,21 +591,27 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             CommitClear()
             
         default:
-            lock.lock()
-            defer { lock.unlock() }
-            
-            var forUpdate = [REEntityKey: Entity]()
-            entities.forEach
-            {
-                if let _ = sharedEntities[$0._key]
+            RxRequestForCombine( entities: entities, updateChilds: false )
+                .subscribe( on: queue )
+                .observe( on: queue )
+                .subscribe(onSuccess:
                 {
-                    forUpdate[$0._key] = $0
-                }
-                
-                sharedEntities[$0._key] = $0
-            }
-            
-            items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
+                    enities in
+                    
+                    self.lock.lock()
+                    defer { self.lock.unlock() }
+                    
+                    var forUpdate = [REEntityKey: Entity]()
+                    enities.forEach
+                    {
+                        forUpdate[$0._key] = $0
+                        self.sharedEntities[$0._key] = $0
+                    }
+                    
+                    entities.forEach { self.sharedEntities[$0._key] = $0 }
+                    self.items.forEach { $0.ref?.Update( entities: forUpdate, operation: operation ) }
+                } )
+                .disposed( by: dispBag )
         }
     }
     
@@ -635,24 +627,30 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         }
         
         CommitDelete( keys: deleteKeys )
-        
-        lock.lock()
-        defer { lock.unlock() }
-        
-        var forUpdate = [REEntityKey: Entity]()
-        var operationUpdate = [REEntityKey: REUpdateOperation]()
-        otherEntities.enumerated().forEach
-        {
-            if let _ = sharedEntities[$1._key]
+
+        RxRequestForCombine( entities: otherEntities, updateChilds: false )
+            .subscribe( on: queue )
+            .observe( on: queue )
+            .subscribe( onSuccess:
             {
-                forUpdate[$1._key] = $1
-            }
-            
-            operationUpdate[$1._key] = otherOpers[$0]
-            sharedEntities[$1._key] = $1
-        }
-        
-        items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
+                enities in
+                
+                self.lock.lock()
+                defer { self.lock.unlock() }
+                
+                var forUpdate = [REEntityKey: Entity]()
+                var operationUpdate = [REEntityKey: REUpdateOperation]()
+                enities.enumerated().forEach
+                {
+                    forUpdate[$1._key] = $1
+                    operationUpdate[$1._key] = otherOpers[$0]
+                    self.sharedEntities[$1._key] = $1
+                }
+                
+                entities.forEach { self.sharedEntities[$0._key] = $0 }
+                self.items.forEach { $0.ref?.Update( entities: forUpdate, operations: operationUpdate ) }
+            } )
+            .disposed( by: dispBag )
     }
     
     public override func Commit( keys: [REEntityKey], operation: REUpdateOperation = .update )
@@ -740,6 +738,7 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         lock.lock()
         defer { lock.unlock() }
         
+        sharedEntities = [:]
         items.forEach { $0.ref?.Clear() }
     }
 

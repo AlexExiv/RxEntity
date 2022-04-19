@@ -914,6 +914,18 @@ class REEntityObservableTests: XCTestCase
         XCTAssertEqual( s!.value, "14" )
         XCTAssertEqual( a[0].value, "14" )
         XCTAssertEqual( a[1].value, "24" )
+        
+        let rxComb = BehaviorRelay( value: 1 )
+        var called = false
+        collection.combineLatest( rxComb ) { t in
+            called = t.0.id == "commit"
+            return t.0.Modified( value: "" )
+        }
+        
+        collection.Commit( entities: [TestEntity( id: "commit", value: "1" )], operations: [.insert] )
+        Thread.sleep( forTimeInterval: 0.5 )
+        
+        XCTAssertEqual( called, true )
     }
     
     func testRepositories()
