@@ -255,6 +255,11 @@ class REEntityObservableTests: XCTestCase
             .first()!
         
         Thread.sleep( forTimeInterval: 0.5 )
+        
+        let item = collection[entityKey: "1"]
+        XCTAssertNotNil( item )
+        XCTAssertEqual( item!.id, "1" )
+        XCTAssertEqual( item!.value, "3" )
     }
     
     func testCollectionExtra()

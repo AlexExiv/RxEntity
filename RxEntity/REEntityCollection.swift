@@ -176,9 +176,17 @@ public class REEntityCollection<Entity: REEntity>
     {
         fatalError( "This method must be overridden" )
     }
-
+    
     func CreateKeyArray( initial: [Entity] ) -> REKeyArrayObservable<Entity>
     {
         fatalError( "This method must be overridden" )
+    }
+    
+    /// Get cached entity by its id
+    /// - Parameter elementId: key of the entity
+    /// - Returns: cached entity if it's exist or nil if the entity hasn't been cached yet
+    public subscript ( entityKey id: REEntityKey ) -> Entity?
+    {
+        sharedEntities[id]
     }
 }
