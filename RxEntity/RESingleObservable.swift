@@ -10,23 +10,38 @@ import Foundation
 import RxSwift
 import RxRelay
 
+///Represents Observable that contains only one element
+///- Parameters:
+///- `Entity`: Type of entity
+///- `Extra`: Any extra type which passes to the `fetch` closure for using during the data fetching
 public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservable<Entity>, ObservableType
 {
     public typealias Element = Entity?
     
     public enum State
     {
-        case initializing, ready, notFound, deleted
+        /// `initializing` - Entity is initializing no data has been loaded yet
+        case initializing
+        /// `ready` - Enity's data has been loaded
+        case ready
+        /// `notFound` - Entity not found
+        case notFound
+        /// `deleted` - Entity has been delete during its using
+        case deleted
     }
     
     let queue: SchedulerType
     
+    /// Current state of the entity
     public let rxState = BehaviorRelay<State>( value: .initializing )
     let rxPublish = BehaviorSubject<Entity?>( value: nil )
     
     public private(set) var extra: Extra? = nil
     
+    /// The key of the current entity
     public var key: REEntityKey? = nil
+    
+    /// The data of the current entity, nil if data hasn't been loaded yet or not found or record deleted
     public var entity: Entity?
     {
         return try! rxPublish.value()
@@ -108,6 +123,10 @@ public class RESingleObservableExtra<Entity: REEntity, Extra>: REEntityObservabl
         self.key = key
     }
     
+    /// Requests refreshing of the data
+    /// - Parameters:
+    ///   - resetCache: flag that's passed to the fetch block
+    ///   - extra: optional extra data that's passed to the fetch block for filtering or any reason to get some extra information about the entity
     public func Refresh( resetCache: Bool = false, extra: Extra? = nil )
     {
         

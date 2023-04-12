@@ -17,6 +17,10 @@ public enum REArrayUpdatePolicy
 
 public let RE_ARRAY_PER_PAGE = 999999
 
+///Represents Observable that contains limited number of element. For example the list of cities or stores in the city
+///- Parameters:
+///- `Entity`: Type of entity
+///- `Extra`: Any extra type which passes to the `fetch` closure for using during the data fetching
 public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable<Entity>, ObservableType
 {
     public typealias Element = [Entity]
@@ -28,6 +32,7 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     public private(set) var perPage = RE_ARRAY_PER_PAGE
     public private(set) var extra: Extra? = nil
 
+    /// Elements of observale
     public private(set) var entities: [Entity] = []
     
     public var updatePolicy: REArrayUpdatePolicy = .update
@@ -228,6 +233,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
     }
     
     //MARK: - Array operations
+    /// Creates `SingleObservable` and sets the element from array as its value
+    /// - Parameter index: index of  the element in the array
     public subscript( index: Int ) -> RESingleObservable<Entity>
     {
         lock.lock()
@@ -236,6 +243,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         return collection!.CreateSingle( initial: entities[index] )
     }
     
+    /// Add new element to the array. If element exists it changes by this
+    /// - Parameter entity: entity for adding
     public func Append( entity: Entity )
     {
         lock.lock()
@@ -245,6 +254,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         rxPublish.onNext( entities )
     }
     
+    /// Remove element from the array
+    /// - Parameter entity: entity for removing
     public func Remove( entity: Entity )
     {
         lock.lock()
@@ -254,6 +265,8 @@ public class REArrayObservableExtra<Entity: REEntity, Extra>: REEntityObservable
         rxPublish.onNext( entities )
     }
     
+    /// Remove element from the array by its key
+    /// - Parameter key: the key of the entity for removing
     public func Remove( key: REEntityKey )
     {
         lock.lock()

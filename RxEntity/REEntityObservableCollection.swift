@@ -25,6 +25,10 @@ struct RECombineSource<E>
     let combine: CombineMethod<E>
 }
 
+/// Shared collection of entity obesrvales of particular `Entity` type that coordinates and manages observables updating
+/// - Parameters:
+///   - Entity: type of a `entity` managed by this collection
+///   - CollectionExtra: `Extra` type that contains parameter or parameters that can cause process of reloading of all data related to this collection. This `Extra` passes to all fetch blocks and you can use it in all your requests
 public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra>: REEntityCollection<Entity>
 {
     public typealias SingleFetchBackCallback = RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>.SingleFetchBackCallback
@@ -160,6 +164,12 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     }
 
     //MARK: - Single Observables
+    /// Creates the `SingleObservable` connected to this collection
+    /// - Parameters:
+    ///   - key: start key of the single observable. Default is `nil`
+    ///   - start: flag indicates start or not fetching fata immidiately after the object `init`. Default is `true`
+    ///   - fetch: closure for the fetch request
+    /// - Returns: single observable
     public func CreateSingleBack( key: REEntityKey? = nil, start: Bool = true, _ fetch: @escaping SingleFetchBackCallback ) -> RESingleObservable<Entity>
     {
         return RESingleObservableCollectionExtra<Entity, REEntityExtraParamsEmpty, CollectionExtra>( holder: self, key: key, collectionExtra: collectionExtra, start: start, observeOn: queue, fetch: fetch )
@@ -318,6 +328,9 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
     //MARK: - Combine Latest
     public func combineLatest<O: ObservableType>( _ source: O, test: @escaping ((Entity, O.Element)) -> Bool = { _ in true }, apply: @escaping ((Entity, O.Element)) -> Entity )
     {
+        lock.lock()
+        defer { lock.unlock() }
+        
         combineSources.append( RECombineSource<Entity>( sources: [source.map { $0 as Any }.observe( on: queue )], test: { (e, a) in test( (e, a[0] as! O.Element) ) }, combine: { (e, a) in apply( (e, a[0] as! O.Element) ) } ) )
         BuildCombines()
     }
@@ -506,6 +519,38 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
         defer { lock.unlock() }
         
         var toUpdate = [REEntityKey: Entity]()
+        /*for c in combines
+        {
+            if c.values.count == 1, let map = c.values[0] as? [REEntityKey: Any]
+            {
+                for k in map.keys
+                {
+                    var e = sharedEntities[k]!
+                    if c.test( e, c.values )
+                    {
+                        e = c.combine( e, c.values )
+                        sharedEntities[k] = e
+                        toUpdate[k] = e
+                    }
+                }
+            }
+            else
+            {
+                for k in sharedEntities.keys
+                {
+                    var e = sharedEntities[k]!
+                    if c.test( e, c.values )
+                    {
+                        e = c.combine( e, c.values )
+                        sharedEntities[k] = e
+                        toUpdate[k] = e
+                    }
+                }
+            }
+            
+            
+        }*/
+        
         sharedEntities.keys.forEach
         {
             var e = sharedEntities[$0]!
@@ -526,7 +571,10 @@ public class REEntityObservableCollectionExtra<Entity: REEntity, CollectionExtra
             }
         }
         
-        items.forEach { $0.ref?.Update( source: "", entities: toUpdate ) }
+        if !toUpdate.isEmpty
+        {
+            items.forEach { $0.ref?.Update( source: "", entities: toUpdate ) }
+        }
     }
     
     //MARK: - Commit

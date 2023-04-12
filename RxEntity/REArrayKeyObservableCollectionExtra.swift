@@ -14,11 +14,16 @@ import RxCocoa
 
 public struct REKeyParams<Extra, CollectionExtra>
 {
+    /// Update requested from refreshing
     public let refreshing: Bool
     public let resetCache: Bool
+    /// The first loading request flag
     public let first: Bool
+    /// The keys of requested elements
     public let keys: [REEntityKey]
+    /// The observable's extra params for example filter and e.g.
     public let extra: Extra?
+    /// The collection extra params it maybe a region or city or so on
     public let collectionExtra: CollectionExtra?
     
     init( refreshing: Bool = false, resetCache: Bool = false, first: Bool = false, keys: [REEntityKey], extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
@@ -64,9 +69,15 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
         super.init( holder: holder, keys: keys, extra: extra, observeOn: observeOn )
         
         weak var _self = self
-        rxKeys
-            .filter { $0.keys.count > 0 }
-            .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
+        Observable
+            .combineLatest( rxKeys, rxSuspended )
+            .filter { $0.0.keys.count > 0 && !$0.1 }
+            .map { $0.0 }
+            .do( onNext:
+            {
+                _self?.rxLoader.accept( $0.first ? .firstLoading : .loading )
+                _self?.rxLastError.accept( nil )
+            } )
             .observe( on: queue )
             .flatMapLatest( {
                 (_self?.RxFetchElements( params: $0, fetch: fetch ) ?? Single.just( [] ))
@@ -74,6 +85,7 @@ public class REKeyArrayObservableCollectionExtra<Entity: REEntity, Extra, Collec
                     .catch
                     {
                         _self?.rxError.accept( $0 )
+                        _self?.rxLastError.accept( $0 )
                         _self?.rxLoader.accept( .none )
                         return Observable.just( [] )
                     }

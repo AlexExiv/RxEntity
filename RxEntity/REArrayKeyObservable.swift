@@ -11,6 +11,10 @@ import RxSwift
 import RxRelay
 import RxCocoa
 
+///Represents Observable that contains array of elements by its keys
+///- Parameters:
+///- `Entity`: Type of entity
+///- `Extra`: Any extra type which passes to the `fetch` closure for using during the data fetching
 public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservableExtra<Entity, Extra>
 {
     public typealias Element = [Entity]
@@ -77,6 +81,8 @@ public class REKeyArrayObservableExtra<Entity: REEntity, Extra>: REArrayObservab
         }
     }
     
+    /// Add new key to the sequence of keys if the key exists nothing happens
+    /// - Parameter key: key for adding
     public func Append( key: REEntityKey )
     {
         lock.lock()

@@ -36,6 +36,13 @@ class RxEntityTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         
+        let ttt = [String: TestEntity]()
+        let rrr = 5
+        let ttta = ttt as Any
+        let rrra = rrr as Any
+        let tt = ttta as? [REEntityKey: Any]
+        let rr = rrra as? [REEntityKey: Any]
+        
         let f = TestEntity( id: "1", value: "2" )
         let kp = \TestEntity.id as AnyKeyPath
         let p = f[keyPath: kp]

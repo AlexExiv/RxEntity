@@ -18,7 +18,8 @@ public class REPaginatorObservableExtra<Entity: REEntity, Extra>: REArrayObserva
     {
         super.init( holder: holder, extra: extra, perPage: perPage, start: start, observeOn: observeOn )
     }
-
+    
+    /// Request next page if the observable has started or initializing otherwise
     public func Next()
     {
         

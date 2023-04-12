@@ -15,12 +15,18 @@ public let PAGINATOR_END = -1000
 
 public struct REPageParams<Extra, CollectionExtra>
 {
+    /// Current page
     public let page: Int
+    /// Number of element per page
     public let perPage: Int
+    /// Update requested from refreshing
     public let refreshing: Bool
     public let resetCache: Bool
+    /// The first loading request flag
     public let first: Bool
+    /// The observable's extra params for example filter and e.g.
     public let extra: Extra?
+    /// The collection extra params it maybe a region or city or so on
     public let collectionExtra: CollectionExtra?
     
     init( page: Int, perPage: Int, refreshing: Bool = false, resetCache: Bool = false, first: Bool = false, extra: Extra? = nil, collectionExtra: CollectionExtra? = nil )
@@ -52,9 +58,15 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
         super.init( holder: holder, extra: extra, perPage: perPage, observeOn: observeOn )
         
         weak var _self = self
-        rxPage
-            .filter { $0.page >= 0 }
-            .do( onNext: { _self?.rxLoader.accept( $0.first ? .firstLoading : .loading ) } )
+        Observable
+            .combineLatest( rxPage, rxSuspended )
+            .filter { $0.0.page >= 0 && !$0.1 }
+            .map { $0.0 }
+            .do( onNext:
+            {
+                _self?.rxLoader.accept( $0.first ? .firstLoading : .loading )
+                _self?.rxLastError.accept( nil )
+            } )
             .flatMapLatest( {
                 fetch( $0 )
                     .asObservable()
@@ -62,6 +74,7 @@ public class REPaginatorObservableCollectionExtra<Entity: REEntity, Extra, Colle
                     .catch
                     {
                         _self?.rxError.accept( $0 )
+                        _self?.rxLastError.accept( $0 )
                         _self?.rxLoader.accept( .none )
                         return Observable.just( [] )
                     }
