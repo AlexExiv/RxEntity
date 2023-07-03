@@ -18,9 +18,7 @@ public class REEntityCollection<Entity: REEntity>
 {
     var items = [REWeakObjectObservable<Entity>]()
     var sharedEntities = [REEntityKey: Entity]()
-    
-    public var entitiesByKey: [REEntityKey: Entity] { sharedEntities }
-    
+        
     let lock = NSRecursiveLock()
     let queue: SchedulerType
     let dispBag = DisposeBag()
@@ -187,6 +185,9 @@ public class REEntityCollection<Entity: REEntity>
     /// - Returns: cached entity if it's exist or nil if the entity hasn't been cached yet
     public subscript ( entityKey id: REEntityKey ) -> Entity?
     {
-        sharedEntities[id]
+        lock.lock()
+        defer { lock.unlock() }
+        
+        return sharedEntities[id]
     }
 }
