@@ -132,8 +132,8 @@ s.source_files  = 'RxEntity', 'RxEntity/**/*.{h,m,swift}'
 s.requires_arc = true
 
 # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-s.dependency "RxSwift", "~> 6.5.0"
-s.dependency "RxCocoa", "~> 6.5.0"
-s.dependency "RxRelay", "~> 6.5.0"
+s.dependency "RxSwift", "~> 6.6.0"
+s.dependency "RxCocoa", "~> 6.6.0"
+s.dependency "RxRelay", "~> 6.6.0"
 
 end
