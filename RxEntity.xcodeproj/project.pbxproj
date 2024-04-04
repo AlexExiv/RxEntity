@@ -3,12 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		C655F95A5DDA8F0EF6B5A27A /* Pods_RxEntityTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0F967221FBC980FA676D21E /* Pods_RxEntityTests.framework */; };
 		DDC3618A8D3F8640605975F0 /* Pods_RxEntity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF580E9F25EDE9341E484563 /* Pods_RxEntity.framework */; };
+		FB0C0FF42BBEA2B4003947C0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FB0C0FF32BBEA2B4003947C0 /* PrivacyInfo.xcprivacy */; };
 		FB0F772223F17DDD00F71B91 /* RxEntity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB0F771823F17DDD00F71B91 /* RxEntity.framework */; };
 		FB0F772723F17DDD00F71B91 /* RxEntityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0F772623F17DDD00F71B91 /* RxEntityTests.swift */; };
 		FB0F772923F17DDD00F71B91 /* RxEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = FB0F771B23F17DDD00F71B91 /* RxEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -46,6 +47,7 @@
 		9594759160A011A396FD8D78 /* Pods-RxEntityTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RxEntityTests.debug.xcconfig"; path = "Target Support Files/Pods-RxEntityTests/Pods-RxEntityTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B0F967221FBC980FA676D21E /* Pods_RxEntityTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RxEntityTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2971B136079F6950AB97356 /* Pods-RxEntity.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RxEntity.debug.xcconfig"; path = "Target Support Files/Pods-RxEntity/Pods-RxEntity.debug.xcconfig"; sourceTree = "<group>"; };
+		FB0C0FF32BBEA2B4003947C0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FB0F771823F17DDD00F71B91 /* RxEntity.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxEntity.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB0F771B23F17DDD00F71B91 /* RxEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RxEntity.h; sourceTree = "<group>"; };
 		FB0F771C23F17DDD00F71B91 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 		FB0F771A23F17DDD00F71B91 /* RxEntity */ = {
 			isa = PBXGroup;
 			children = (
+				FB0C0FF32BBEA2B4003947C0 /* PrivacyInfo.xcprivacy */,
 				FB0F773A23F1830500F71B91 /* REEntity.swift */,
 				FB4BC501250E79A5008600D8 /* RERepository.swift */,
 				FB0F773723F1830500F71B91 /* REEntityObservable.swift */,
@@ -262,6 +265,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB0C0FF42BBEA2B4003947C0 /* PrivacyInfo.xcprivacy in Resources */,
 				FB0F773323F17EF700F71B91 /* RxEntity.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -136,4 +136,6 @@ s.dependency "RxSwift", "~> 6.6.0"
 s.dependency "RxCocoa", "~> 6.6.0"
 s.dependency "RxRelay", "~> 6.6.0"
 
+s.resource_bundles = { "RxEntity" => ["RxEntity/PrivacyInfo.xcprivacy"] }
+
 end
