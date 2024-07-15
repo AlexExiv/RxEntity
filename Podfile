@@ -1,11 +1,11 @@
 source 'https://github.com/CocoaPods/Specs.git'
-platform :ios, '10.0'
+platform :ios, '12.0'
 use_frameworks!
 
 def shared_pods
-  pod 'RxSwift',    '~> 6.6.0'
-  pod 'RxCocoa',    '~> 6.6.0'
-  pod 'RxRelay',    '~> 6.6.0'
+  pod 'RxSwift',    '~> 6.7.1'
+  pod 'RxCocoa',    '~> 6.7.1'
+  pod 'RxRelay',    '~> 6.7.1'
 end
 
 target 'RxEntity' do
@@ -15,6 +15,6 @@ end
 target 'RxEntityTests' do
     shared_pods
     
-    pod 'RxBlocking', '~> 6.6.0'
-    pod 'RxTest', '~> 6.6.0'
+    pod 'RxBlocking', '~> 6.7.1'
+    pod 'RxTest', '~> 6.7.1'
 end

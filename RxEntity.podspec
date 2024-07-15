@@ -132,9 +132,9 @@ s.source_files  = 'RxEntity', 'RxEntity/**/*.{h,m,swift}'
 s.requires_arc = true
 
 # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-s.dependency "RxSwift", "~> 6.6.0"
-s.dependency "RxCocoa", "~> 6.6.0"
-s.dependency "RxRelay", "~> 6.6.0"
+s.dependency "RxSwift", "~> 6.7.1"
+s.dependency "RxCocoa", "~> 6.7.1"
+s.dependency "RxRelay", "~> 6.7.1"
 
 s.resource_bundles = { "RxEntity" => ["RxEntity/PrivacyInfo.xcprivacy"] }
 
